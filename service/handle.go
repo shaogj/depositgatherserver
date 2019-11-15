@@ -196,7 +196,7 @@ func RemoteSignCreateAddress(w http.ResponseWriter, r *http.Request) {
 				//end add 1115
 
 
-				err = AccountWDCSave(GXormMysql, "", accounts.GAccountPassword, jReq.CoinType, pubKeyAddr, getprivkey, getpubKey, getpubKeyHash)
+				err = AccountWDCSave(GXormMysql, "", accounts.GAccountPassword, jReq.CoinType, pubKeyAddr, encrptedEncodePrivkey, getpubKey, getpubKeyHash)
 				if err != nil {
 					log.Error("exec WDC GenerateAccount() failed! err is: %v", err)
 					sttError = transproto.ErrorInfo{transproto.StatusNewAddressErr, "生成账号地址错误"}
