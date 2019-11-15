@@ -1,7 +1,7 @@
 package accounts
 
 import (
-	//"2019NNZXProj10/abitserverDepositeGather/dashaddress"
+	//"2019NNZXProj10/depositgatherserver/dashaddress"
 	//"fmt"
 	//"github.com/bcext/cashutil"
 	//"github.com/bcext/gcash/btcec"

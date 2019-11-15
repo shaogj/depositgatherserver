@@ -1,7 +1,7 @@
 package service
 
 import (
-	"2019NNZXProj10/abitserverDepositeGather/config"
+	"2019NNZXProj10/depositgatherserver/config"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
@@ -12,17 +12,17 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"2019NNZXProj10/abitserverDepositeGather/accounts"
-	transproto "2019NNZXProj10/abitserverDepositeGather/proto"
-	"2019NNZXProj10/abitserverDepositeGather/service/wdctranssign"
+	"2019NNZXProj10/depositgatherserver/accounts"
+	transproto "2019NNZXProj10/depositgatherserver/proto"
+	"2019NNZXProj10/depositgatherserver/service/wdctranssign"
 
-	"2019NNZXProj10/abitserverDepositeGather/KeyStore"
+	"2019NNZXProj10/depositgatherserver/KeyStore"
 
 	"github.com/gorilla/mux"
 	"github.com/mkideal/log"
 	. "shaogj/utils"
 	"time"
-	"2019NNZXProj10/abitserverDepositeGather/cryptoutil"
+	"2019NNZXProj10/depositgatherserver/cryptoutil"
 
 )
 

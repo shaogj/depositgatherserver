@@ -1,7 +1,7 @@
 package main
 
 import (
-	"2019NNZXProj10/abitserverDepositeGather/service"
+	"2019NNZXProj10/depositgatherserver/service"
 	"encoding/base64"
 
 	//"backend/support/libraries/loggers"
@@ -10,25 +10,25 @@ import (
 	"net/http"
 	"time"
 
-	//"2019NNZXProj10/abitserverDepositeGather"
+	//"2019NNZXProj10/depositgatherserver"
 	"os"
 
-	"2019NNZXProj10/abitserverDepositeGather/accounts"
-	"2019NNZXProj10/abitserverDepositeGather/service/wdctranssign"
+	"2019NNZXProj10/depositgatherserver/accounts"
+	"2019NNZXProj10/depositgatherserver/service/wdctranssign"
 
-	"2019NNZXProj10/abitserverDepositeGather/config"
+	"2019NNZXProj10/depositgatherserver/config"
 
 	"github.com/gorilla/mux"
 	mylog "github.com/mkideal/log"
 
-	//"2019NNZXProj10/abitserverDepositeGather/worker"
-	"2019NNZXProj10/abitserverDepositeGather/cryptoutil"
+	//"2019NNZXProj10/depositgatherserver/worker"
+	"2019NNZXProj10/depositgatherserver/cryptoutil"
 )
 var flConfig string
 
 func init() {
 	//flag.StringVar(&flConfig, "c", "./config.conf", "config filepath")
-//	flag.StringVar(&flConfig, "cmy", "/Users/gejians/go/src/2019NNZXProj10/abitserverDepositeGather/config.conf", "config filepath")
+//	flag.StringVar(&flConfig, "cmy", "/Users/gejians/go/src/2019NNZXProj10/depositgatherserver/config.conf", "config filepath")
 	flag.StringVar(&flConfig, "cmy", "config.conf", "config filepath")
 }
 

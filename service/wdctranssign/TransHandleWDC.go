@@ -1,17 +1,17 @@
 package wdctranssign
 
 import (
-	"2019NNZXProj10/abitserverDepositeGather/models"
+	"2019NNZXProj10/depositgatherserver/models"
 	"time"
 
-	//"2019NNZXProj10/abitserverDepositeGather/wdctranssign"
+	//"2019NNZXProj10/depositgatherserver/wdctranssign"
 	"fmt"
 	"github.com/mkideal/log"
 	//"strconv"
 
-	"2019NNZXProj10/abitserverDepositeGather/config" // "strings"
-	"2019NNZXProj10/abitserverDepositeGather/proto"
-	"2019NNZXProj10/abitserverDepositeGather/KeyStore"
+	"2019NNZXProj10/depositgatherserver/config" // "strings"
+	"2019NNZXProj10/depositgatherserver/proto"
+	"2019NNZXProj10/depositgatherserver/KeyStore"
 	"github.com/go-xorm/xorm"
 	"encoding/json"
 	. "shaogj/utils"

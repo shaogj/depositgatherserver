@@ -8,13 +8,13 @@ import (
 	"github.com/mkideal/log"
 	//"strconv"
 
-	"2019NNZXProj10/abitserverDepositeGather/KeyStore"
-	"2019NNZXProj10/abitserverDepositeGather/config" // "strings"
-	"2019NNZXProj10/abitserverDepositeGather/proto"
+	"2019NNZXProj10/depositgatherserver/KeyStore"
+	"2019NNZXProj10/depositgatherserver/config" // "strings"
+	"2019NNZXProj10/depositgatherserver/proto"
 	"encoding/json"
 	"errors"
 	. "shaogj/utils"
-	"2019NNZXProj10/abitserverDepositeGather/cryptoutil"
+	"2019NNZXProj10/depositgatherserver/cryptoutil"
 
 )
 

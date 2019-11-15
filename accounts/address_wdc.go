@@ -1,7 +1,7 @@
 package accounts
 
 import (
-	"2019NNZXProj10/abitserverDepositeGather/proto"
+	"2019NNZXProj10/depositgatherserver/proto"
 	"fmt"
 	"github.com/mkideal/log"
 	. "shaogj/utils"

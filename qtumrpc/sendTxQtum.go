@@ -11,7 +11,7 @@ import (
 	//"io/ioutil"
 	"time"
 
-	"2019NNZXProj10/abitserverDepositeGather/config"
+	"2019NNZXProj10/depositgatherserver/config"
 
 	"encoding/base64"
 	"github.com/mkideal/log"

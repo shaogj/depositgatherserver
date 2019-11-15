@@ -15,7 +15,7 @@ import (
 	//sgj add:
 	//"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"encoding/hex"
-	"2019NNZXProj10/abitserverDepositeGather/config"
+	"2019NNZXProj10/depositgatherserver/config"
 
 	//"github.com/btcsuite/btcd/wire"
 	mylog "github.com/mkideal/log"

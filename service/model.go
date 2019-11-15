@@ -1,8 +1,8 @@
 package service
 
 import (
-	"2019NNZXProj10/abitserverDepositeGather/config"
-	"2019NNZXProj10/abitserverDepositeGather/models"
+	"2019NNZXProj10/depositgatherserver/config"
+	"2019NNZXProj10/depositgatherserver/models"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"

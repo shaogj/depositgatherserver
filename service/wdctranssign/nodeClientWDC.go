@@ -6,8 +6,8 @@
 package wdctranssign
 
 import (
-	"2019NNZXProj10/abitserverDepositeGather/config"
-	"2019NNZXProj10/abitserverDepositeGather/proto"
+	"2019NNZXProj10/depositgatherserver/config"
+	"2019NNZXProj10/depositgatherserver/proto"
 	"encoding/json"
 	//"bytes"
 	"fmt"
