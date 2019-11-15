@@ -1,0 +1,230 @@
+File opened at: 2019/11/15 10:41:03
+Built with gc go1.10.3 for darwin/amd64
+[E 2019/11/15 10:41:03.753 HttpClientEx.go:181] http.Do failed,[err=Post http://localhost:8027/depositAddresss?action=query: read tcp [::1]:62820->[::1]:8027: i/o timeout][url=http://localhost:8027/depositAddresss?action=query]
+[E 2019/11/15 10:41:03.753 DepositHandle.go:83] WithdrawsDeposit,ht.RequestResponseJsonJson  status=0,error=6012.Post http://localhost:8027/depositAddresss?action=query: read tcp [::1]:62820->[::1]:8027: i/o timeout url=http://localhost:8027/depositAddresss?action=query 
+[E 2019/11/15 10:41:03.753 DepositHandle.go:201] WithdrawsDeposites err! cur reqQueryInfo is:&{30 0 WDC 0 0 1573785654 []}
+[E 2019/11/15 10:41:16.535 handle.go:255] cur exec WithdrawsDepositGatherWDC() err! get gatherAddrCount is:0
+,err is :errinfomsgskip
+File opened at: 2019/11/15 10:50:43
+Built with gc go1.10.3 for darwin/amd64
+[E 2019/11/15 10:50:43.683 DepositHandle.go:95] WithdrawsDeposites res err! err resUpdateSign is:{0 INTERNAL_SERVER_ERROR server error map[] 0xc420218480 false false []}
+[E 2019/11/15 10:50:43.683 DepositHandle.go:201] WithdrawsDeposites err! cur reqQueryInfo is:&{30 0 WDC 0 0 1573786243 []}
+[E 2019/11/15 10:50:54.461 handle.go:255] cur exec WithdrawsDepositGatherWDC() err! get gatherAddrCount is:0
+,err is :errinfomsgskip
+File opened at: 2019/11/15 10:58:54
+Built with gc go1.10.3 for darwin/amd64
+[E 2019/11/15 10:58:54.807 DepositHandle.go:95] WithdrawsDeposites res err! err resUpdateSign is:{0 INTERNAL_SERVER_ERROR server error map[] 0xc420210780 false false []}
+[E 2019/11/15 10:58:54.807 DepositHandle.go:201] WithdrawsDeposites err! cur reqQueryInfo is:&{30 0 WDC 0 0 1573786734 []}
+[E 2019/11/15 10:58:56.577 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.577 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.581 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.581 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.582 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.582 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.583 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.583 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.584 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.584 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.587 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.587 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.588 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.588 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.588 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.589 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.589 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.589 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.594 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.594 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.595 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.595 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.597 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.597 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.597 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.597 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.598 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.598 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.599 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.599 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.599 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.599 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.600 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.600 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.601 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.601 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.601 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.601 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.602 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.602 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.602 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.602 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.603 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.603 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.604 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.604 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.604 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.604 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.605 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.605 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.605 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.605 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.606 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.606 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.607 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.607 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.608 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.608 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.609 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.609 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.609 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.609 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.610 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.610 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.610 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.610 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.611 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.611 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.612 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.612 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.612 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.612 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.613 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.613 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.613 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.613 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.614 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.614 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.614 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.614 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.615 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.615 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.615 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.615 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.616 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.616 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.616 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.616 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.617 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.617 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.618 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.618 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.618 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.618 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.619 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.619 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.620 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.620 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.621 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.621 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.621 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.621 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.622 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.622 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.622 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.622 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.623 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.623 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.624 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.624 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.624 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.624 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.625 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.625 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.626 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.626 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.627 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.627 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.628 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.628 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.628 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.628 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.629 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.629 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.630 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.630 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.630 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.630 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.631 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.631 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.631 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.631 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.631 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.631 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.632 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.632 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.632 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.632 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.633 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.633 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.633 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.633 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.634 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.634 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.634 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.634 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.635 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.635 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.636 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.636 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.637 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.637 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.637 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.637 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.638 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.638 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.638 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.639 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.639 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.639 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.640 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.640 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.641 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.641 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.641 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.641 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.642 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.642 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.644 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.644 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.645 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.645 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.645 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.645 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.646 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.646 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.647 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.647 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.647 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.647 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.648 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.648 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.648 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.648 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.649 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.649 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.650 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.650 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.650 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.650 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.651 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.651 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.653 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.653 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.653 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.653 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.654 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.654 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+[E 2019/11/15 10:58:56.654 TransHandleWDC.go:71] GetWDCAddressRec(),get rows failed,curaddress =,exist no row
+[E 2019/11/15 10:58:56.654 DepositHandle.go:290] GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =
+File opened at: 2019/11/15 11:48:02
+Built with gc go1.10.3 for darwin/amd64
+[E 2019/11/15 11:48:02.670 HttpClientEx.go:181] http.Do failed,[err=Post https://devapi.ggex.com/v1/settle/getconfig?action=query: dial tcp [2606:4700:30::681c:1723]:443: connect: no route to host][url=https://devapi.ggex.com/v1/settle/getconfig?action=query]
+[E 2019/11/15 11:48:02.670 DepositHandle.go:155] QueryDepositGroupConfig,ht.RequestResponseJsonJson  status=0,error=6012.Post https://devapi.ggex.com/v1/settle/getconfig?action=query: dial tcp [2606:4700:30::681c:1723]:443: connect: no route to host url=https://devapi.ggex.com/v1/settle/getconfig?action=query 
+[E 2019/11/15 11:48:06.675 DepositHandle.go:209] QueryDepositGroupConfig res err! get configs is:[]
+File opened at: 2019/11/15 11:58:27
+Built with gc go1.10.3 for darwin/amd64
+[E 2019/11/15 11:58:27.574 TransHandleWDC.go:102] SaveTranRecord(),Insert row = :{1 ef75c92ed95b0cfe63d90e8c4c9ab09e02077c7b271303bcfdde0b892fcecb93 1GDCaTWZnTfcSAwBZiqVRi6eRRfY62WVWS 82e55a856e28a84e6d6c5ee431fe883fb237ef6f 4.982 0 WDCGather curstatusing 0 2000 SUCCESS 2019-11-15 11:58:27 AM  },rows=0,err is-:Error 1062: Duplicate entry '1' for key 'index_settleid' 
+[E 2019/11/15 12:05:55.493 handle.go:255] cur exec WithdrawsDepositGatherWDC() err! get gatherAddrCount is:0
+,err is :errinfomsgskip
+[E 2019/11/15 12:07:31.542 TransHandleWDC.go:102] SaveTranRecord(),Insert row = :{1 a542d9aceedc75b465143c98c10b5d7a0bb161dea1654578405e88d104ecfa02 1GDCaTWZnTfcSAwBZiqVRi6eRRfY62WVWS 82e55a856e28a84e6d6c5ee431fe883fb237ef6f 2 0 WDCGather curstatusing 0 2000 SUCCESS 2019-11-15 12:07:31 PM  },rows=0,err is-:Error 1062: Duplicate entry '1' for key 'index_settleid' 
+[E 2019/11/15 13:47:58.915 TransHandleWDC.go:102] SaveTranRecord(),Insert row = :{1 e2631883d92c0257f8e1e70dcb7ac3927b099ddb83db663715b3bb13f2f78f21 1GDCaTWZnTfcSAwBZiqVRi6eRRfY62WVWS 82e55a856e28a84e6d6c5ee431fe883fb237ef6f 3.012 0 WDCGather curstatusing 0 2000 SUCCESS 2019-11-15 01:47:58 PM  },rows=0,err is-:Error 1062: Duplicate entry '1' for key 'index_settleid' 
+[E 2019/11/15 13:48:03.026 TransHandleWDC.go:102] SaveTranRecord(),Insert row = :{2 b7f09194fdd9b4a69a800c37754c82321715e171de44c6e044b7df6c1ff65634 1H9yXTAUS9ndsf9aWu18dU3Z7cafJzqM5i 82e55a856e28a84e6d6c5ee431fe883fb237ef6f 3.7063 0 WDCGather curstatusing 0 2000 SUCCESS 2019-11-15 01:48:03 PM  },rows=0,err is-:Error 1062: Duplicate entry '2' for key 'index_settleid' 

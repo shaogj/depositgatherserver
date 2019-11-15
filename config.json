@@ -1,0 +1,26 @@
+{
+  "MySqlConfig": {
+    "host": "127.0.0.1",
+    "user": "root",
+    "password": "123456",
+    "port": 3306,
+    "dbname": "ggexaddressall"
+  },
+  "SettleApiQuery": "https://devapi.ggex.com/v1/settle/withdraws?action=query",
+  "SettleApiUpdate": "http://localhost:8027/withdraws?action=updatewdc",
+  "WDCNodeUrl":"http://192.168.1.138:19585",
+  "JavaSDKUrl":"http://192.168.1.138:8090/wallet/WalletUtility",
+  "WDCTransUrl" :"http://192.168.1.138:8090/wallet/TxUtility",
+
+  "SettleApiDepositQuery" :"http://localhost:8027/depositAddresss?action=query",
+  "WDCTransferOutAddress" :"1HFCUeNHcL6Drf4TPwBLG6RgYVe9o41BVj",
+  "WDCGatterToAddress" :"1Cw7bhuoG4nSk2LXbnySLXH9eGuTU1LCtq",
+  "WDCGatterConfigUrl" :"https://devapi.ggex.com/v1/settle/getconfig?action=query",
+
+  "SettleAccessKey":{
+    "AccessComePubKey" : "0xb14e11b557077674077586d8A6F0C623E8E5A70A",
+    "AccessPrivKey" : "453e53c2594c59c88c8efa629ba0af1dc1af2e7bd423eb9d4dd2fa40bd1a0d9e"
+  },
+  "WebPort": 4466
+
+}

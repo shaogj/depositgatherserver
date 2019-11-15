@@ -1,0 +1,10 @@
+1.配置文件：config.json,批量生成地址私钥保存到mysql
+1.批量生成地址请求
+http://localhost:3311/remote/getnewaddress?cointype=CoinDSC
+{
+        "cointype": "CoinDSC",
+            "accountNumber":4,
+                "IsReturnList": 1
+}
+curl -d '{"cointype": "CoinDSC","accountNumber":4,"IsReturnList": 1}'  http://192.168.1.166:3377/remote/getnewaddress
+

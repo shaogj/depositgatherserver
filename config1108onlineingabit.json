@@ -1,0 +1,27 @@
+{
+  "MySqlConfig": {
+    "host": "127.0.0.1",
+    "user": "shaogejian",
+    "password": "shaogejian",
+    "port": 3306,
+    "dbname": "ggexaddressall"
+  },
+  "SettleApiReq": {
+    "SettleApiQuery": "https://devapi.ggex.com/v1/settle/withdraws?action=query",
+    "SettleApiUpdate": "https://devapi.ggex.com/v1/settle/withdraws?action=update"
+  },
+  "SettleApiQuery": "https://api.abit.space/v1/settle/withdraws?action=query",
+  "SettleApiUpdate": "http://api.abit.space/v1/settle/withdraws?action=updatewdc",
+  "WDCNodeUrl":"http://18.176.110.109:19585",
+  "JavaSDKUrl":"http://18.176.110.109:8090/wallet/WalletUtility",
+  "WDCTransUrl" :"http://18.176.110.109:8090/wallet/TxUtility",
+  "WDCTransferOutAddress" :"",
+  "WDCGatterToAddress" :"1Cw7bhuoG4nSk2LXbnySLXH9eGuTU1LCtq",
+
+  "SettleAccessKey":{
+    "AccessComePubKey" : "0xb14e11b557077674077586d8A6F0C623E8E5A70A",
+    "AccessPrivKey" : "dd8bfcf42b66c994478736539ccf0d9e7bb008fa030e4e2c4e3401f938284ebb"
+  },
+  "WebPort":4466 
+
+}
