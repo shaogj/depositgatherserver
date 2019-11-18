@@ -81,9 +81,9 @@ func (self *WDCTransHandle) QueryWDCDepositesAddr(reqQueryInfo *proto.DepositeAd
 	ht.HeaderSet("Content-Type", "application/json;charset=utf-8")
 
 	//req.Header.Set("abit-actionsign", signData)
-	ht.HeaderSet(proto.HActionSign, signData)
+	//ht.HeaderSet(proto.HActionSign, signData)
 	//1112 update for abit
-	//ht.HeaderSet(proto.HActionAbitSign, signData)
+	ht.HeaderSet(proto.HActionAbitSign, signData)
 
 
 	log.Info("QueryWDCDepositesAddr.transInfo url=%s,cur reqdata = %v", UrlVerify, curQueryInfo)
@@ -152,9 +152,9 @@ func (self *WDCTransHandle) QueryDepositGroupConfig(group string) (getDepositCon
 	ht.HeaderSet("Content-Type", "application/json;charset=utf-8")
 
 	//req.Header.Set("abit-actionsign", signData)
-	ht.HeaderSet(proto.HActionSign, signData)
+	//ht.HeaderSet(proto.HActionSign, signData)
 	//1112 update for abit
-	//ht.HeaderSet(proto.HActionAbitSign, signData)
+	ht.HeaderSet(proto.HActionAbitSign, signData)
 
 
 	log.Info("QueryDepositGroupConfig url=%s,cur reqdata = %v", UrlVerify, curQueryInfo)
@@ -200,7 +200,7 @@ func (self *WDCTransHandle) QueryDepositGroupConfig(group string) (getDepositCon
 	}
 }
 
-
+//开始资金归集的流程
 func (self *WDCTransHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddresssReq) (opercount int,is bool) {
 
 
@@ -213,7 +213,7 @@ func (self *WDCTransHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddr
 	}
 	log.Info("QueryWDCDepositesAddr good! get len is :%d,curAddressList is:%v",len(curAddressList),curAddressList)
 	//var threshold;
-	//var configs = await Coin.getDepositGroupConfig('USDT');
+	//从settlecenter测，获取配置的大账户归集限额
 	configs,bsucc := self.QueryDepositGroupConfig("WDC")
 
 	if bsucc != true {
@@ -305,10 +305,11 @@ func(self *WDCTransHandle) WDCGatherTransProc(iseno int64,fromaddress string, to
 	reqUpdateInfo := proto.WithdrawsUpdateReq{}
 	reqUpdateInfo.Withdraws = make([]proto.Settle,1)
 
-	//11013 add :
+	//1118 update :abit-online big address
 	if toGatherAddr == ""{
-		toGatherAddr = "1HFCUeNHcL6Drf4TPwBLG6RgYVe9o41BVj"
+		toGatherAddr = "1KVcQTbsMuU5jpZSdBRXiKcbbawrGBo9h7"
 	}
+	//ggex.dev.test:1HFCUeNHcL6Drf4TPwBLG6RgYVe9o41BVj
 
 	curaddrrec,err := GWdcDataStore.GetWDCAddressRec(getfromAddress)
 	if err != nil{
@@ -327,11 +328,11 @@ func(self *WDCTransHandle) WDCGatherTransProc(iseno int64,fromaddress string, to
 	}
 	//fmt.Println("Decrypt get decrpteddecodeStr len is:%d,val is====44:%s,org encrpted len is:",len(dencrptedEncodeStr),dencrptedEncodeStr,len(encrpted))
 	delastcrptedaft, err := cryptoutil.AESCBCDecrypt(GCurGetKeyStr, nil, []byte(dencrptedEncodeStr))
-	if err != nil {
-		log.Error("command %s: decrypt error===888: %v", "cmdName", delastcrptedaft)
-	}
 	delastcrptedaftstr :=string(delastcrptedaft)
-	log.Info("command %s: decrypt succ===999: %s", "cmdName", delastcrptedaftstr)
+	if err != nil {
+		log.Error("delastcrptedaft is: %s: decrypt error===888: %v", delastcrptedaftstr, err)
+	}
+	log.Info("command %s: decrypt succ===999: %s", "AESCBCDecrypt", delastcrptedaftstr)
 	getAddressPriv := delastcrptedaftstr
 	//sgj 1115 end add
 	//获取账户余额	getfromAddress,

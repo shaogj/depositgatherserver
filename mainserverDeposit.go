@@ -38,7 +38,6 @@ func init() {
 //Encrypt
 
 func main() {
-	fmt.Println("vim-go")
 	err := config.NewConfigTools(flConfig)
 	if nil != err {
 		mylog.Error("Can't load config error=%v", err)
@@ -90,15 +89,19 @@ func main() {
 	}
 	//2)
 	// 对 params 进行 base64 解码
+	//sgj 1118 do testing
+	//encrptedEncodeStr = "pMWlJaOgTMxybuMoDeiynpUDWDnMcc68zf3HIdMxlcVuPtKCE70dbt8C32jFAKPn4K68AX/nZMBdn8iEVbhfTq19afj36QONEZw1OQCxpvQ="
+	                     //MT5jdxLqt6lUhKFMSLc9/3gXTQqyywoUuHTdRTe793re0dloE8P1xHCGkaKCtRimk32Oc7Yetr55m6vIVcqBbCp+vaKk3hG6qAV7R2dFiKw=
 	dencrptedEncodeStr, err := base64.StdEncoding.DecodeString(string(encrptedEncodeStr))
 	if err != nil {
 		mylog.Error("DecodeString text is:%s,err is----AAA:%v",encrptedEncodeStr,err)
 		//return nil, err
 	}
+	/**/
 	//fmt.Println("Decrypt get decrpteddecodeStr len is:%d,val is====44:%s,org encrpted len is:",len(dencrptedEncodeStr),dencrptedEncodeStr,len(encrpted))
 	delastcrptedaft, err := cryptoutil.AESCBCDecrypt(getKeystr, nil, []byte(dencrptedEncodeStr))
 	if err != nil {
-		mylog.Error("command %s: decrypt error===888: %v", "cmdName", delastcrptedaft)
+		mylog.Error("delastcrptedaft is: %s: decrypt error===888: %v", delastcrptedaft, err)
 	}
 	delastcrptedaftstr :=string(delastcrptedaft)
 	mylog.Info("command %s: decrypt succ===999: %s", "cmdName", delastcrptedaftstr)
@@ -116,10 +119,6 @@ func main() {
 
 	}
 	return
-
-	*/
-	//1105testing,good2!
-	/*
 	*/
 	//1107doing
 	/*
@@ -135,17 +134,6 @@ func main() {
 	return
 	end doing 1107*/
 
-	/* 2019.1114 skiping
-	fromPubkeyStr := "1b3d954faa58c0cf7911596f056354136b3bbef996909167fd27386639cadbf4"
-	toPubkeyhashStr := "b1348662bf564fe79e6fcaa33855feccd4adf98d"
-	amount:=3.8
-	prikeyStr:= "858322a0f4f4edc45c58ddd5b6420eb5f2e54273a5c81d366102a5f97fe56c14"
-	nonce :=3
-	wdctranssign.GWDCTransHandle.ClientToTransferAccount(fromPubkeyStr,toPubkeyhashStr,float64(amount),prikeyStr,int64(nonce))
-	time.Sleep(time.Second * 4)
-
-		*/
-	//end 1107doing end
 	testWdcRPCClient :=new(wdctranssign.WdcRpcClient)
 
 	//1106 add:
@@ -157,18 +145,8 @@ func main() {
 
 	}
 
-	/*
-	//worker.NewWDCWorker( time.Minute * 5)
-	curWDCWorker := worker.NewWDCWorker( time.Second * 500)
-	go curWDCWorker.Start(nil)
-	//1106 Mode2 ending
-		return
-	*/
-
 	router :=mux.NewRouter().StrictSlash(true)
 
-	//router.HandleFunc("/createaddress/{cointype}", service.CreateAddress)
-	router.HandleFunc("/createaddress", service.CreateAddress)
 	//sgj 1017 adding:	签名服务器: 成生新的地址(批量)
 	router.HandleFunc("/remote/getnewaddress", service.RemoteSignCreateAddress)
 
@@ -178,11 +156,6 @@ func main() {
 
 	strHost:=fmt.Sprintf(":%d",gbConf.WebPort)
 	mylog.Info("strHost is :%s", strHost)
-
-	//1025add
-
-	//1028add:normal params to get all queue;
-	//go service.WithdrawsTransTotal(0,10,"WDC")
 
 	err =http.ListenAndServe(strHost, router)
 	if nil!=err {

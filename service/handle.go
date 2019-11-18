@@ -18,12 +18,10 @@ import (
 
 	"2019NNZXProj10/depositgatherserver/KeyStore"
 
-	"github.com/gorilla/mux"
+	"2019NNZXProj10/depositgatherserver/cryptoutil"
 	"github.com/mkideal/log"
 	. "shaogj/utils"
 	"time"
-	"2019NNZXProj10/depositgatherserver/cryptoutil"
-
 )
 
 type ReturnInfo struct {
@@ -101,42 +99,6 @@ func HttpExRequestJson(w http.ResponseWriter, r *http.Request, v interface{}) (s
 		return string(result), sttErr
 	}
 	return string(result), transproto.ErrorSuccess
-}
-
-func CreateAddress(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	//cmdName := "CreateAddress"
-	coinType := vars["cointype"]
-	var status int
-	var desc string
-	var genPubKeyAddr string
-	fmt.Println("vim-go")
-	if coinType == "CoinDSC" {
-		//sgj 0821 gooding:
-		//getprivkey, getpubKey, pubKeyAddr, err := accounts.AddressGenerateDSC()
-
-		//sgj 1104 temp skip:
-		getprivkey := "getprivkey"
-		getpubKey := "getpubKey"
-		pubKeyAddr := "pubKeyAddr"
-		var err error = nil
-		//genPubKeyAddr = pubKeyAddr
-		if err != nil {
-			log.Error("exec AddressGenerateQtum() Failure!")
-			status = StatusNewAddressErr
-			desc = "生成账号地址错误"
-		} else {
-			log.Info("doing--AddressGenerateDSC() exec succ!,get pubKeyAdd is :%s,pubKey is %s,puraddrPrikey info is :%v\n", pubKeyAddr, getpubKey, getprivkey)
-			//err = GenerateAccount(qtumtranssign.Qtum_MOrmEngine,"QTUM",getprivkey,getpubKey,pubKeyAddr)
-
-		}
-	}
-	makeaddrs := GenerateAddressRes{
-		GeneratedAddr: []string{genPubKeyAddr},
-		CoinType:      coinType,
-	}
-
-	GeneJsonResultFin(w, r, makeaddrs, status, desc)
 }
 
 //sgj 1017add for RemoteSignCreateAddress
