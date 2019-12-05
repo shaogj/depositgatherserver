@@ -232,6 +232,8 @@ func (self *WDCTransHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddr
 		}
 		reqQueryInfo.Offset += len(curAddressList)
 	}
+	log.Info("WithdrawsDeposites Total finished! get TotalAddressList len is :%d", len(TotalAddressList))
+
 	//end 1205.1
 	//var threshold;
 	//从settlecenter测，获取配置的大账户归集限额
@@ -282,7 +284,7 @@ func (self *WDCTransHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddr
 		return 0,false;
 	}
 
-	log.Info("WithdrawsDeposites res succ! to gather limit is:%f,get TotalAddressList is:%v", limit,TotalAddressList)
+	log.Info("WithdrawsDeposites res succ! to gather limit is:%f,get len(TotalAddressList) is:%d,TotalAddressList is:%v", limit,len(TotalAddressList),TotalAddressList)
 	//sgj 1114checking
 	//return
 
