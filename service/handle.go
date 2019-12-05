@@ -232,7 +232,9 @@ func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 		if "WDC" == jReq.CoinType {
 			//WithdrawsDepositGatherWDC
 			//1113 测试归集的服务接口调用
-			gatherAddrCount, bret = wdctranssign.WithdrawsDepositGatherWDC(0, 30, "WDC")
+
+			//1204,limit set to 50
+			gatherAddrCount, bret = wdctranssign.WithdrawsDepositGatherWDC(0, 50, "WDC")
 
 			if bret != true {
 				log.Error("cur exec WithdrawsDepositGatherWDC() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")

@@ -78,6 +78,31 @@ func (self *WdcDataStore) GetWDCAddressRec(curaddress string) (curaddrrec *model
 
 }
 
+//11.26 adding
+func (self *WdcDataStore) UtxoWdcAccount(seriid int,addressid string,curNewPrivKey string) (bool,error) {
+
+	//保存到数据库
+	addrec := models.WdcAccountKey{
+		PrivKey :curNewPrivKey,
+		//GenerateTime: tm.Format("2006-01-02 03:04:05 PM"),
+	}
+	log.Debug("exec UtxoWdcAccount()==44444 ,seriid is:%d,addressid is:%s,curNewPrivKey is %v, rec info is :%v",seriid,addressid,curNewPrivKey,addrec)
+	//rows, err := self.OrmEngine.Table("address_utxo").Where("txcurid=?", curNewPrivKey).Cols("vintxid_status").Update(rec)
+	rows, err := self.OrmEngine.Table("wdc_account_key").Where("address=?", addressid).Cols("priv_key").Update(addrec)
+	if err != nil {
+		log.Error("exec err1!,UtxoWdcAccount()==5555{seriid=%s,curNewPrivKey=%s,err=%s}",seriid ,curNewPrivKey,err.Error())
+		return false,err
+	}
+	if rows == 0 {
+		log.Debug("exec UtxoWdcAccount()==5555 finished! exist no same address. address=%s",addressid)
+		return true,nil
+	}else{
+		log.Debug("exec UtxoWdcAccount()==5555,cur update addressid' rec succ! seriid is:%d,curNewPrivKey is %v, rec info is :%v",seriid,curNewPrivKey,addrec)
+	}
+	return true,nil
+
+}
+
 //1103add
 func (self* WdcDataStore)SaveTranRecord(coinType string,fromAddr,toAddress string,settleid int64,txhash string ,curamount float64,state string,errcode int,desc string,strRaw string) error  {
 
@@ -319,7 +344,9 @@ func(self *WDCTransHandle) WDCTransProc(cursettle proto.Settle, from string, acc
 	}
 	//1104，可把转账结构写入数据库
 	//err :=
-	GWdcDataStore.SaveTranRecord(cursettle.CoinCode,getfromAddress,getToPubHashStr,cursettle.SettleId,txid,curAmount,"curstatusing",errcode,errmsg,"")
+	//sgj 1202 upgrade:
+	//when save to DB:cursettle.ToAddress replace getToPubHashStr
+	GWdcDataStore.SaveTranRecord(cursettle.CoinCode,getfromAddress,cursettle.ToAddress,cursettle.SettleId,txid,curAmount,"curstatusing",errcode,errmsg,"")
 
 	reqUpdateInfo.Withdraws[0].Status = curStatus
 	reqUpdateInfo.Nonce = time.Now().Unix()

@@ -84,6 +84,8 @@ func (self *WDCTransHandle) QueryWDCDepositesAddr(reqQueryInfo *proto.DepositeAd
 	//ht.HeaderSet(proto.HActionSign, signData)
 	//1112 update for abit
 	ht.HeaderSet(proto.HActionAbitSign, signData)
+	//1204 tmp doing:
+	//ht.HeaderSet(proto.HActionSign, signData)
 
 
 	log.Info("QueryWDCDepositesAddr.transInfo url=%s,cur reqdata = %v", UrlVerify, curQueryInfo)
@@ -94,7 +96,7 @@ func (self *WDCTransHandle) QueryWDCDepositesAddr(reqQueryInfo *proto.DepositeAd
 	} else {
 		if resDepositQuerySign.Msg== "Success" {
 
-			log.Info("QueryWDCDepositesAddr good!,get strRes is:%v,resDepositQuerySign is:%v", strRes, resDepositQuerySign)
+			log.Info("QueryWDCDepositesAddr good!,get Msg' len(strRes) is:%d,resDepositQuerySign is:%v", len(strRes), resDepositQuerySign)
 			log.Info("QueryWDCDepositesAddr info is:%v", transInfo)
 
 			getAddress = transInfo.Addresss
@@ -207,11 +209,30 @@ func (self *WDCTransHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddr
 	var threshold float64 = 22;
 	//fix 初始化count
 	self.GatherAddrCount = 0
-	curAddressList, bsucc := self.QueryWDCDepositesAddr(reqQueryInfo)
-	if bsucc == false {
-		log.Error("WithdrawsDeposites err! cur reqQueryInfo is:%v", reqQueryInfo)
+	//1205 fix add offset:
+	var TotalAddressList = make([]string,0)
+	reqQueryInfo.Offset = 0
+	//循环取出所用充值地址：
+	for {
+		//end 1205
+		curAddressList, bsucc := self.QueryWDCDepositesAddr(reqQueryInfo)
+		if bsucc == false {
+			log.Error("WithdrawsDeposites err! cur reqQueryInfo is:%v", reqQueryInfo)
+			//1205:
+			break
+		}
+		if len(curAddressList) == 0 {
+			log.Info("WithdrawsDeposites finished! cur reqQueryInfo is:%v,get addrlist is 0", reqQueryInfo)
+			//1205:
+			break
+		}
+		log.Info("QueryWDCDepositesAddr good! get len is :%d,curAddressList is:%v", len(curAddressList), curAddressList)
+		for _, getAddr := range curAddressList {
+			TotalAddressList = append(TotalAddressList, getAddr)
+		}
+		reqQueryInfo.Offset += len(curAddressList)
 	}
-	log.Info("QueryWDCDepositesAddr good! get len is :%d,curAddressList is:%v",len(curAddressList),curAddressList)
+	//end 1205.1
 	//var threshold;
 	//从settlecenter测，获取配置的大账户归集限额
 	configs,bsucc := self.QueryDepositGroupConfig("WDC")
@@ -261,11 +282,11 @@ func (self *WDCTransHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddr
 		return 0,false;
 	}
 
-	log.Info("WithdrawsDeposites res succ! to gather limit is:%f,get curAddressList is:%v", limit,curAddressList)
+	log.Info("WithdrawsDeposites res succ! to gather limit is:%f,get TotalAddressList is:%v", limit,TotalAddressList)
 	//sgj 1114checking
 	//return
 
-	for ino, curAddrItem := range curAddressList {
+	for ino, curAddrItem := range TotalAddressList {
 
 		_,gettxid := self.WDCGatherTransProc(int64(ino),curAddrItem,curGatterToAddress)
 		log.Info("cur WDCGatherTransProc() finished, curAddrItem is %s, curGatterToAddress is:%s,gettxid is:%s,the rest wdc GatherLimit is :%f",curAddrItem,curGatterToAddress,gettxid,self.GatherLimit);
@@ -408,8 +429,9 @@ func(self *WDCTransHandle) WDCGatherTransProc(iseno int64,fromaddress string, to
 	}
 
 	//1104，可把转账结构写入数据库
-	//err :=
-	GWdcDataStore.SaveTranRecord("WDCGather",getfromAddress,getToPubHashStr,iseno,txid,curGatherAmount,"curstatusing",errcode,errmsg,"")
+	//err :
+	//1202 upgrade,when save to DB: use toGatherAddr replace getToPubHashStr
+	GWdcDataStore.SaveTranRecord("WDCGather",getfromAddress,toGatherAddr,iseno,txid,curGatherAmount,"curstatusing",errcode,errmsg,"")
 
 	self.GatherLimit -= curGatherAmount
 	self.GatherAddrCount +=1
