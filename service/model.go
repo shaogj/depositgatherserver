@@ -12,6 +12,9 @@ import (
 
 var GXormMysql *xorm.Engine
 
+//1217add from KTC
+var GXormMysqlKTC *xorm.Engine
+
 func InitMysqlDB(conf config.MySqlConfig) error {
 
 	dataSourceName := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true",
@@ -27,7 +30,23 @@ func InitMysqlDB(conf config.MySqlConfig) error {
 	log.Info("InitMysqlDB() exec succ!,conf.Host is:%v",conf.Host)
 	return nil
 }
+//1217add from KTC
 
+func InitMysqlDBKTC(conf config.MySqlConfig) error {
+
+	dataSourceName := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true",
+		conf.User,conf.Password,conf.Host,conf.Port,conf.Dbname)
+	log.Info("Mysql{%s}",dataSourceName)
+	var err error
+	GXormMysqlKTC,err= xorm.NewEngine("mysql", dataSourceName)
+	if nil!=err {
+		log.Error("InitMysqlDB() exec err!,errinfo is:%v",err)
+		//os.Exit(0)
+		return err
+	}
+	log.Info("InitMysqlDB() exec succ!,conf.Host is:%v",conf.Host)
+	return nil
+}
 //请求API: 创建新的数字币(比特币,莱特币等)地址
 func GenerateAccount(curengine *xorm.Engine,cointype string,privkey string,pubkey string,pubkeyaddr string) error {
 	enginewrite := curengine

@@ -22,6 +22,8 @@ import (
 	"github.com/mkideal/log"
 	. "shaogj/utils"
 	"time"
+	"2019NNZXProj10/depositgatherserver/service/ktctranssign"
+
 )
 
 type ReturnInfo struct {
@@ -241,7 +243,19 @@ func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 			} else {
 				log.Info(" cur exec WithdrawsDepositGatherWDC() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
 			}
-		} else {
+		} else if "KTC" == jReq.CoinType {
+			//WithdrawsDepositGatherWDC
+			//1217 测试归集的服务接口调用
+
+			//1204,limit set to 50
+			gatherAddrCount, bret = ktctranssign.WithdrawsDepositGatherKTC(0, 4, "KTC")
+
+			if bret != true {
+				log.Error("cur exec WithdrawsDepositGatherKTC() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
+			} else {
+				log.Info(" cur exec WithdrawsDepositGatherKTC() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
+			}
+		}else {
 			GeneJsonResultFin(w, r, nil, 111096, "error  is cointype")
 		}
 		//sgj 0802 add

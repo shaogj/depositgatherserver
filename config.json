@@ -6,6 +6,13 @@
     "port": 3306,
     "dbname": "ggexaddressall"
   },
+  "MySqlConfigKTC": {
+    "host": "18.176.110.109",
+    "user": "shaogejian",
+    "password": "shaogejian",
+    "port": 3306,
+    "dbname": "ggexaddressallktc"
+  },
   "SettleApiQuery": "https://devapi.ggex.com/v1/settle/withdraws?action=query",
   "SettleApiUpdate": "http://localhost:8027/withdraws?action=updatewdc",
   "WDCNodeUrl":"http://192.168.1.138:19585",
@@ -17,9 +24,12 @@
   "WDCGatterToAddress" :"1Cw7bhuoG4nSk2LXbnySLXH9eGuTU1LCtq",
   "WDCGatterConfigUrl" :"https://devapi.ggex.com/v1/settle/getconfig?action=query",
 
+  "KTCGatterToAddress" :"39QXajNbM7aqurkav6DF6vyupY1cn48a8i",
+  "KTCGatterConfigUrl" :"https://api.tigermex.com/v1/settle/getconfig?action=query",
+
   "SettleAccessKey":{
     "AccessComePubKey" : "0xb14e11b557077674077586d8A6F0C623E8E5A70A",
-    "AccessPrivKey" : "453e53c2594c59c88c8efa629ba0af1dc1af2e7bd423eb9d4dd2fa40bd1a0d9e"
+    "AccessPrivKey" : "27f157d04ca4c308a69c91b453cd72abad1357d0922b08bc3230a72d8d794060"
   },
   "WebPort": 4466
 

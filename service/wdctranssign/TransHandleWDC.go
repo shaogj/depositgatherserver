@@ -78,6 +78,27 @@ func (self *WdcDataStore) GetWDCAddressRec(curaddress string) (curaddrrec *model
 
 }
 
+//sgj 1217adding:
+func (self *WdcDataStore) GetKTCAddressRec(curKtcOrm *xorm.Engine,curaddress string) (curaddrrec *models.WdcAccountKey, err error) {
+
+	address_info := new(models.WdcAccountKey)
+	//bret,err := self.OrmEngine.Table("ktc_account_key").Where("address=?", curaddress).Get(address_info)
+	bret,err := curKtcOrm.Table("ktc_account_key").Where("address=?", curaddress).Get(address_info)
+	if err != nil {
+		log.Error("GetKTCAddressRec(), curaddress is :%s,error=%v",curaddress,err)
+		return nil,err
+	}
+	//sgj 1016 add:
+	if bret == false{
+		log.Error("GetKTCAddressRec(),get rows failed,curaddress =%s,exist no row",curaddress)
+		return address_info,errors.New("cur address exist no row in db")
+	}else{
+		log.Info("GetKTCAddressRec(),get rows succ,curaddress =%s,get row=%v",curaddress,address_info)
+	}
+
+	return address_info,nil
+
+}
 //11.26 adding
 func (self *WdcDataStore) UtxoWdcAccount(seriid int,addressid string,curNewPrivKey string) (bool,error) {
 

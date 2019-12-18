@@ -23,6 +23,41 @@ const (
 const (
 	StatusNewAddressErr        = 201 //  生成账号地址错误
 )
+//1217add
+
+//11.19add:
+// enum: ReturnStatus
+// 返回状态码
+const (
+	//StatusSuccess = 0 // 成功
+	StatusEncodeJSONFail       = 102 // 编码json出错
+	StatusDecodeJSONFail       = 103 // 解码json出错
+	StatusParseError           = 104 // 解析出错
+	StatusCommandNotFound      = 105 // 命令未找到
+
+	StatusSuccess      = 200// 调用成功
+
+	StatusDataSelectErr        = 205 //  查询数据库错误
+	SStatusAddrNotFound         = 206 // 用户地址不存在
+	StatusNewAddrNotExist         = 207 // 此类型新地址不存在
+
+	StatusLackBalance       	= 301 // 地址余额不足
+	StatusLackUTXO       		= 303 // 地址充值余额信息未发现
+	StatusAccountNotExisted 	= 304 // 地址不存在
+	StatusAccountPrikeyNotExisted 	= 305 //地址私钥不存在
+
+	StatusSignError       		= 400 // 交易签名失败
+	StatusInvalidArgument      	= 401 // 无效输入参数
+	//StatusSignError       		= 400 // 交易签名错误
+	//交易发送
+	StatusShareOrderThemeErr    = 500 //交易广播错误
+	//sgj 1018 add:
+	StatusUtxoTxWaiting       	= 707 // 存在当前地址的交易；等待新的Txid推送返回
+
+
+)
+
+
 type UnfreezeFundsStatus int
 
 const HActionSign     = "GGEX-ActionSign"
@@ -30,6 +65,8 @@ const HActionSign     = "GGEX-ActionSign"
 //sgj 1112 fix add:
 const HActionAbitSign     = "Abit-ActionSign"
 
+//1217
+const HActionTMexSign     = "TMex-ActionSign"
 
 //1.函数名:	GenerateMultiAddress
 // protocol: 请求: 生成数字支付地址

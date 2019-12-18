@@ -15,14 +15,20 @@ import (
 
 	"2019NNZXProj10/depositgatherserver/accounts"
 	"2019NNZXProj10/depositgatherserver/service/wdctranssign"
+	//sgj 1217add
 
-	"2019NNZXProj10/depositgatherserver/config"
+	"2019NNZXProj10/depositgatherserver/service/ktctranssign"
+
+
+"2019NNZXProj10/depositgatherserver/config"
 
 	"github.com/gorilla/mux"
 	mylog "github.com/mkideal/log"
 
 	//"2019NNZXProj10/depositgatherserver/worker"
 	"2019NNZXProj10/depositgatherserver/cryptoutil"
+	"2019NNZXProj10/depositgatherserver/service/ktctranssign/ktcrpc"
+
 )
 var flConfig string
 
@@ -59,10 +65,22 @@ func main() {
 		os.Exit(0)
 
 	}
+	//1217add
+	err = service.InitMysqlDBKTC(gbConf.MySqlCfgKTC)
+	if nil != err {
+		mylog.Error("cur InitMysqlDB() to conn err!,err is :%v", err)
+		os.Exit(0)
+
+	}
+
 	accounts.GJavaSDKUrl = gbConf.JavaSDKUrl
 	wdctranssign.GWDCTransHandle.Init(gbConf.WDCTransUrl, &gbConf.WDCConf)
 	//wdctranssign.MOrmEngine=service.GXormMysql
 	wdctranssign.GWdcDataStore.OrmEngine = service.GXormMysql
+
+	//sgj 1217 add
+	//GXormMysqlKTC
+	ktctranssign.GKtcDataStore.OrmEngine = service.GXormMysqlKTC
 
 	//"http://192.168.1.211:19585"
 	wdctranssign.WDCNodeUrl = gbConf.WDCNodeUrl
@@ -76,8 +94,14 @@ func main() {
 	getKeystr :=[]byte("1234567812345678")
 	/**/
 	//2)
-	curPrivkey := "453e53c2594c59c88c8efa629ba0af1dc1af2e7bd423eb9d4dd2fa6666661111"
+	//curPrivkey := "453e53c2594c59c88c8efa629ba0af1dc1af2e7bd423eb9d4dd2fa6666661111"
+	//curPrivkey := "c11104cc7bc872eba3af03293b7e1e7fcfc9aa146ff2ace523f260de35564c31"
 
+	//12.17doing,,for encry to db:
+	//curPrivkey :="L5DoNfVEtdwEuPkmTYQT11p7dLsmnsnMpKLsD4mZbn3ozEizdv37"
+	curPrivkey :="KznoaLNGcSzJUWkBk7FLXFRbNBqkL21SVGn6CMZrEUE2qJRX3SFf"
+
+	//1H9yXTAUS9ndsf9aWu18dU3Z7cafJzqM5i,,,,c11104cc7bc872eba3af03293b7e1e7fcfc9aa146ff2ace523f260de35564c31
 	//11.15tesitn
 	var encrptedEncodeStr string
 	encrpted, err := cryptoutil.AESCBCEncrypt(getKeystr, nil, []byte(curPrivkey))
@@ -106,6 +130,8 @@ func main() {
 	delastcrptedaftstr :=string(delastcrptedaft)
 	mylog.Info("command %s: decrypt succ===999: %s", "cmdName", delastcrptedaftstr)
 	time.Sleep(time.Second * 3)
+
+	//return
 	//return
 	//1113 测试归集的服务接口调用,gooding
 	//for PART Model 2 to wangning
@@ -145,13 +171,30 @@ func main() {
 
 	}
 
+
+	//sgj 1217 adding
+	if true!=cfgtools.Disable.DisKTCcoin{
+		mylog.Info("--sgj==>KTC RpcConnect() conf info is %v", cfgtools.CurKTCConf)
+		ktcrpc.NewKTCRpcClient(&cfgtools.CurKTCConf)
+		curKTCClient,err2 := ktcrpc.KTCRPCClient.RpcConnect()
+
+		if err2 != nil {
+			mylog.Error("KTC RpcConnect() failure!error is %s: %v. process break!", err2)
+			panic(fmt.Sprintf("RpcConnect error:%v", err2))
+		}
+		mylog.Info("KTC RpcConnect() success! curKTCClient info is %v", curKTCClient)
+	}
+
+
 	router :=mux.NewRouter().StrictSlash(true)
+
 
 	//sgj 1017 adding:	签名服务器: 成生新的地址(批量)
 	router.HandleFunc("/remote/getnewaddress", service.RemoteSignCreateAddress)
 
 	//sgj 1114add for guiji:
 
+	//sgj 1217cadd for guiji:
 	router.HandleFunc("/remote/monitorwalletwdc", service.RemoteMonitorWalletAddress)
 
 	strHost:=fmt.Sprintf(":%d",gbConf.WebPort)
