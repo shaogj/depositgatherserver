@@ -539,7 +539,8 @@ func (ser *KTCSignHandle) PaySignTransProc(fromAddr string,fromPrivKey string,to
 	//找零后，为旷工费：
 	//AmountFee := 0.00002//0.0009
 	// AmountFee := 0.00002 * 5//0.0009
-	AmountFee := 0.00012
+	//AmountFee := 0.00012
+	AmountFee := 0.00002
 
 	curfee := AmountFee
 
