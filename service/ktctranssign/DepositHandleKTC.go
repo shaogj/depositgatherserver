@@ -113,9 +113,11 @@ func (self *KTCDepositHandle) QueryKTCDepositesAddr(reqQueryInfo *proto.Deposite
 	//1112 update for abit
 	//1217befing
 	//ht.HeaderSet(proto.HActionAbitSign, signData)
-	ht.HeaderSet(proto.HActionSign, signData)
+	//ht.HeaderSet(proto.HActionSign, signData)
 	//1204 tmp doing:
 	//ht.HeaderSet(proto.HActionSign, signData)
+	//1218	STDing
+	ht.HeaderSet(proto.HActionAbitSign, signData)
 
 
 	log.Info("QueryKTCDepositesAddr.transInfo url=%s,cur reqdata = %v", UrlVerify, curQueryInfo)
@@ -188,7 +190,9 @@ func (self *KTCDepositHandle) QueryDepositGroupConfig(group string) (getDepositC
 	//1112 update for abit
 	//ht.HeaderSet(proto.HActionAbitSign, signData)
 	//1217 update for abit
-	ht.HeaderSet(proto.HActionTMexSign, signData)
+	//ht.HeaderSet(proto.HActionTMexSign, signData)
+	//1118 update for abit
+	ht.HeaderSet(proto.HActionAbitSign, signData)
 
 
 	log.Info("QueryDepositGroupConfig url=%s,cur reqdata = %v", UrlVerify, curQueryInfo)

@@ -196,6 +196,10 @@ func main() {
 
 	//sgj 1217cadd for guiji:
 	router.HandleFunc("/remote/monitorwalletwdc", service.RemoteMonitorWalletAddress)
+	//sgj 1218doing
+
+	router.HandleFunc("/remote/monitorwalletktc", service.RemoteMonitorWalletKTCAddress)
+
 
 	strHost:=fmt.Sprintf(":%d",gbConf.WebPort)
 	mylog.Info("strHost is :%s", strHost)

@@ -243,19 +243,7 @@ func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 			} else {
 				log.Info(" cur exec WithdrawsDepositGatherWDC() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
 			}
-		} else if "KTC" == jReq.CoinType {
-			//WithdrawsDepositGatherWDC
-			//1217 测试归集的服务接口调用
-
-			//1204,limit set to 50
-			gatherAddrCount, bret = ktctranssign.WithdrawsDepositGatherKTC(0, 4, "KTC")
-
-			if bret != true {
-				log.Error("cur exec WithdrawsDepositGatherKTC() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
-			} else {
-				log.Info(" cur exec WithdrawsDepositGatherKTC() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
-			}
-		}else {
+		} else {
 			GeneJsonResultFin(w, r, nil, 111096, "error  is cointype")
 		}
 		//sgj 0802 add
@@ -268,6 +256,57 @@ func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 
 	GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)
 }
+
+//sgj 1218add
+//DepositAddressGatherReq
+func RemoteMonitorWalletKTCAddress(w http.ResponseWriter, r *http.Request) {
+
+	jReq := transproto.DepositAddressGatherReq{}
+	strreq, sttErr := HttpExRequestJson(w, r, &jReq)
+	log.Info("fun=RemoteSignCreateAddress() bef--,request=%v", jReq)
+	if true != transproto.Success(sttErr) {
+		GeneJsonResultFin(w, r, nil, sttErr.Code, sttErr.Desc)
+		return
+	}
+	if jReq.EncryptPemTxt != "EncryptPemTxt2019WDC1114val" {
+		GeneJsonResultFin(w, r, nil, 110098, "EncryptPemTxt is nocorrect!")
+		return
+	}
+	if jReq.KeyText != "UCt38sGmp" {
+		GeneJsonResultFin(w, r, nil, 110098, "KeyText is nocorrect!")
+		return
+	}
+	log.Info("fun=RemoteMonitorWalletAddress(),request=%s", strreq)
+	//创建请求列表
+	sttError := transproto.ErrorSuccess
+	var gatherAddrCount int
+	var bret bool
+	if "KTC" == jReq.CoinType {
+		//WithdrawsDepositGatherWDC
+		//1217 测试归集的服务接口调用
+
+		//1204,limit set to 50
+		gatherAddrCount, bret = ktctranssign.WithdrawsDepositGatherKTC(0, 4, "KTC")
+
+		if bret != true {
+			log.Error("cur exec WithdrawsDepositGatherKTC() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
+		} else {
+			log.Info(" cur exec WithdrawsDepositGatherKTC() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
+		}
+	}else {
+		GeneJsonResultFin(w, r, nil, 111096, "error  is cointype")
+	}
+	//sgj 0802 add
+	log.Info("exec WithdrawsDepositGatherWDC() success! jReq.CoinType is :%s,gatherAddrCount is: %d", jReq.CoinType, gatherAddrCount)
+
+	makeaddrs := transproto.DepositAddressGatherRes{
+		Count:         int64(gatherAddrCount),
+		CoinType:      jReq.CoinType,
+	}
+
+	GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)
+}
+
 
 //const HActionSign     = "GGEX-ActionSign"
 

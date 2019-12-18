@@ -1,15 +1,6 @@
 package accounts
 
-import (
-	//"2019NNZXProj10/depositgatherserver/dashaddress"
-	//"fmt"
-	//"github.com/bcext/cashutil"
-	//"github.com/bcext/gcash/btcec"
-	"github.com/bcext/gcash/chaincfg"
-	//"strings"
-	//"github.com/mkideal/log"
-)
-var chainParamsBCH = &chaincfg.MainNetParams
+//var chainParamsBCH = &chaincfg.MainNetParams
 
 func AddressGenerateDSC() (getprikey string, getaddrpubkey string, getaddress string, err error) {
 
