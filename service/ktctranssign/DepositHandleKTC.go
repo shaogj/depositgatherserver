@@ -450,10 +450,13 @@ func(self *KTCDepositHandle) KtCGatherTransProc(iseno int64,fromaddress string, 
 	toamount1 := curGatherAmount
 	//1217adding
 	//end sgj 1121ing
+	//1230add
+	var rettxid string
 	if signInfoRes == nil || err != nil{
 		//0502	保存签名交易错误信息to DB：status，err
 		//GeneJsonResultFin(w,r,ressigndata,status,desc)//"errinfo4"
 		log.Error("request Pay_SignTransaction() failure ! CoinCode is %d,amount is:%f,get status info is %d:err is :%v", "KTC",toamount1,status, err)
+
 	} else{
 		if "KTC" == config.CoinKTC{
 
@@ -470,6 +473,8 @@ func(self *KTCDepositHandle) KtCGatherTransProc(iseno int64,fromaddress string, 
 			getTxid, err := ktcrpc.KTCRPCClient.SendTransaction(txdecodeinfo.Hex)
 			if getTxid != "" {
 				curTxId = getTxid
+				//1230add
+				rettxid = curTxId
 			}
 			if err !=nil{
 				log.Error("SendTransaction() failure ! fromaddress is:%s,curGatherAmount is :%f,get gettxid is :%s,err is :%v", fromaddress,curGatherAmount,curTxId, err)
@@ -511,7 +516,7 @@ func(self *KTCDepositHandle) KtCGatherTransProc(iseno int64,fromaddress string, 
 
 	self.GatherLimit -= curGatherAmount
 	self.GatherAddrCount +=1
-	txid := "23223"
-	return ret, txid
+	//txid := "23223"
+	return ret, rettxid
 }
 

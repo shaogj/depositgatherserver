@@ -285,8 +285,9 @@ func RemoteMonitorWalletKTCAddress(w http.ResponseWriter, r *http.Request) {
 		//WithdrawsDepositGatherWDC
 		//1217 测试归集的服务接口调用
 
-		//1204,limit set to 50
-		gatherAddrCount, bret = ktctranssign.WithdrawsDepositGatherKTC(0, 4, "KTC")
+		//1204,limit set to 50;;;
+		//1230,limit set to 50,,from 4
+		gatherAddrCount, bret = ktctranssign.WithdrawsDepositGatherKTC(0, 50, "KTC")
 
 		if bret != true {
 			log.Error("cur exec WithdrawsDepositGatherKTC() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
