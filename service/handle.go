@@ -308,6 +308,56 @@ func RemoteMonitorWalletKTCAddress(w http.ResponseWriter, r *http.Request) {
 	GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)
 }
 
+//sgj 0116add for EETH gather:WithdrawsDepositGatherEETH
+func RemoteMonitorWalletEETHAddress(w http.ResponseWriter, r *http.Request) {
+
+	jReq := transproto.DepositAddressGatherReq{}
+	strreq, sttErr := HttpExRequestJson(w, r, &jReq)
+	log.Info("fun=RemoteSignCreateAddress() bef--,request=%v", jReq)
+	if true != transproto.Success(sttErr) {
+		GeneJsonResultFin(w, r, nil, sttErr.Code, sttErr.Desc)
+		return
+	}
+	if jReq.EncryptPemTxt != "EncryptPemTxt2019WDC1114val" {
+		GeneJsonResultFin(w, r, nil, 110098, "EncryptPemTxt is nocorrect!")
+		return
+	}
+	if jReq.KeyText != "UCt38sGmp" {
+		GeneJsonResultFin(w, r, nil, 110098, "KeyText is nocorrect!")
+		return
+	}
+	log.Info("fun=RemoteMonitorWalletAddress(),request=%s", strreq)
+	//创建请求列表
+	sttError := transproto.ErrorSuccess
+	var gatherAddrCount int
+	var bret bool
+	if "BTC" == jReq.CoinType || "USDT" == jReq.CoinType || "ETH" == jReq.CoinType{
+		//WithdrawsDepositGatherWDC
+		//1217 测试归集的服务接口调用
+
+		//1204,limit set to 50;;;
+		//1230,limit set to 50,,from 4
+	//	gatherAddrCount, bret = ktctranssign.WithdrawsDepositGatherEETH(0, 50, jReq.CoinType)
+		gatherAddrCount, bret = WithdrawsDepositGatherEETH(0, 50, jReq.CoinType)
+
+		if bret != true {
+			log.Error("cur exec WithdrawsDepositGatherEETH() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
+		} else {
+			log.Info(" cur exec WithdrawsDepositGatherEETH() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
+		}
+	}else {
+		GeneJsonResultFin(w, r, nil, 111096, "error  is cointype")
+	}
+	//sgj 0802 add
+	log.Info("exec WithdrawsDepositGatherEETH() success! jReq.CoinType is :%s,gatherAddrCount is: %d", jReq.CoinType, gatherAddrCount)
+
+	makeaddrs := transproto.DepositAddressGatherRes{
+		Count:         int64(gatherAddrCount),
+		CoinType:      jReq.CoinType,
+	}
+
+	GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)
+}
 
 //const HActionSign     = "GGEX-ActionSign"
 

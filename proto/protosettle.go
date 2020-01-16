@@ -68,6 +68,9 @@ const HActionAbitSign     = "Abit-ActionSign"
 //1217
 const HActionTMexSign     = "TMex-ActionSign"
 
+//sgj 0106add
+const HActionEETHSign     = "EETH-actionSign"
+
 //1.函数名:	GenerateMultiAddress
 // protocol: 请求: 生成数字支付地址
 type GenerateAddressReq struct {
@@ -262,6 +265,11 @@ var  (
 
 	ErrDecryptFail=ErrorInfo{Code:3333,Desc:"解密json串失败",}
 	ErrVerifyListFail=ErrorInfo{Code:9189,Desc:"人工审核获取订单列表失败",}
+
+	//1129 add
+	ErrorRequestInfuraETHNode=ErrorInfo{Code:7004,Desc:"请求Node错误(ETH)",}
+
+	ErrorRequestInfuraETHSend=ErrorInfo{Code:7005,Desc:"请求Node错误(ETH)",}
 
 )
 

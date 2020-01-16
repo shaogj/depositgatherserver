@@ -43,12 +43,13 @@ import (
 	//1017 add:
 	"2019NNZXProj10/depositgatherserver/service/wdctranssign"
 
+
 )
 
 var activeNet = &netparams.TestNet3Params
 
 //sgj1120adding:
-var UtxoRPCClient = new(wdctranssign.WdcRpcClient)
+//var UtxoRPCClient = new(wdctranssign.WdcRpcClient)
 
 var (
 	Omni_MOrmEngine *xorm.Engine = &xorm.Engine{}
@@ -986,20 +987,18 @@ func (ser *UsdtSignHandle) ExecSignHandleProc(fromAddr string,curtxUSDTHex strin
 
 
 //签名交易的处理流程控制
-func (ser *UsdtSignHandle) GetVerifiedParams(cursettle *proto.Settle,outAccountAddress string) (fromAddr,toAddr, remainAddr string,toamount float64,errcode int,err error) {
+func (ser *UsdtSignHandle) GetVerifiedParams(fromAddrCur string,fromPrivKey string,toamountcur float64,gatherAddress string) (fromAddr,toAddr, remainAddr string,toamount float64,errcode int,err error) {
 
-	log.Info("exec PaySignTransProc() step 1,curtransreq of cursettle is : %v \n", cursettle)
+	log.Info("exec PaySignTransProc() step 1,fromAddrCur is : %v \n", fromAddrCur)
 
-	fromAddr =cursettle.FromAddress
-	if fromAddr == ""{
-		fromAddr = outAccountAddress
-	}
-	toAddr = cursettle.ToAddress
+	fromAddr =fromAddrCur
+
+	toAddr = gatherAddress
 	//toamount1 := cursettle * 100000000
 	////sgj 1121PMdoing:临时交易数据data：
 
-	toamount1,_:= cursettle.Vol.Float64()
-	//toamount1 :=0.23
+	//toamount1,_:= cursettle.Vol.Float64()
+	toamount1 :=toamountcur
 	//sgj 0106doing
 	//toamount1 = 0.14
 
@@ -1033,10 +1032,17 @@ func (ser *UsdtSignHandle) GetVerifiedParams(cursettle *proto.Settle,outAccountA
 func FloatTostrwithprec(fv float64, prec int) string {
     return strconv.FormatFloat(fv, 'f', prec, 64)
 }
-//propertyid,资产ID
-func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,curtransreq *proto.SignTransactionReq,cursettle proto.Settle,outAccountAddress string,execcompletedflag bool) (txdata interface{}, status int, err error) {
 
-	fromAddr,toAddr, remainAddr,toamount,paramstatus,err := ser.GetVerifiedParams(&cursettle,outAccountAddress)
+//sgj 0116doing
+var UtxoRPCClientUSDT = new(wdctranssign.WdcRpcClient)
+
+//propertyid,资产ID
+//fromAddr string,fromPrivKey string,toamount float64,gatherAddress string,curGatherLimit float64
+func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,fromAddr string,fromPrivKey string,toamount float64,gatherAddress string,curGatherLimit float64,execcompletedflag bool) (txdata interface{}, status int, err error) {
+
+//func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,curtransreq *proto.SignTransactionReq,cursettle proto.Settle,outAccountAddress string,execcompletedflag bool) (txdata interface{}, status int, err error) {
+
+	fromAddr,toAddr, remainAddr,toamount,paramstatus,err := ser.GetVerifiedParams(fromAddr,fromPrivKey,toamount,gatherAddress)
 	if paramstatus > 0 {
 		return nil, proto.StatusInvalidArgument, nil
 	}
@@ -1056,7 +1062,8 @@ func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,curtransreq *proto.Si
 	 */
 
 	addrUtxolist := make([]proto.AddrBalanceUnspent,3,8)
-	getutxoinfo,utxonum,err := UtxoRPCClient.GetTxUnSpentLimit(fromAddr)	//"1Eq8xXAea47WPY5t8zUEYDKgcWB7cptZWB")
+	getutxoinfo,utxonum,err := UtxoRPCClientUSDT.GetTxUnSpentLimit(fromAddr)
+
 	if err != nil {
 		log.Error("fromAddr %s ,exex GetTxUnSpentLimit() failue! err is: %v \n", fromAddr, err)
 		return nil, status, err
@@ -1175,10 +1182,10 @@ func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,curtransreq *proto.Si
 	curUstdRawTxInputs = append(curUstdRawTxInputs, &curTxIn)
 
 	//from step 5 and add a change output back to
-	//getCurRawTx := omnirpc.Createrawtx_change(getNewRawHex,string(newget_RawTxInputs),fromAddr,0.008)
-	fee := 0.00004
 	// sgj 0920 update to usdt:
-	fee = 0.00006
+	fee := 0.00006
+	//sgj 20200114 update fee value
+	fee = 0.000007
 	fromAddr = remainAddr
 	//getCurRawTxResp, err := omnirpc.OmniRPCClient.Call("omni_createrawtx_change", getNewRawHex, curUstdRawTxInputs, fromAddr, fee, 1)
 	//sgj 1121 watching

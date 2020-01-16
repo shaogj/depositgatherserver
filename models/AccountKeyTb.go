@@ -6,6 +6,10 @@ var (
 	TableBTCAccount="gjc_account_key_tb"
 	TableCoinPrivateKey= "coin_private_key"
 	TableGGEXTranRecord="ggex_tran_state"
+	//0116add
+	TableBTCTranRecord="btc_tran_state"
+
+
 )
 
 type GjcAccountKeyTb struct {

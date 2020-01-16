@@ -21,6 +21,12 @@ import (
 	"2019NNZXProj10/depositgatherserver/service/ktctranssign/ktcrpc"
 	"github.com/btcsuite/btcd/btcjson"
 	"2019NNZXProj10/depositgatherserver/service/ktctranssign"
+	//sgj 0116add
+	"2019NNZXProj10/depositgatherserver/service/ethtranssign/ethclientrpc"
+	"2019NNZXProj10/depositgatherserver/service/ethtranssign"
+	"2019NNZXProj10/depositgatherserver/service/omnitranssign"
+	"fmt"
+
 
 
 
@@ -57,6 +63,8 @@ var GTotalDepositHandle =  TotalDepositHandle{}
 //TotalDepositHandle
 
 var GKtcDataStore =wdctranssign.WdcDataStore{}
+
+var UtxoRPCClient = new(wdctranssign.WdcRpcClient)
 
 type TotalDepositHandle struct {
 	CoinType string  //币种类型
@@ -119,7 +127,9 @@ func (self *TotalDepositHandle) QueryEETHDepositesAddr(reqQueryInfo *proto.Depos
 	//1204 tmp doing:
 	//ht.HeaderSet(proto.HActionSign, signData)
 	//1218	STDing
-	ht.HeaderSet(proto.HActionAbitSign, signData)
+	//ht.HeaderSet(proto.HActionAbitSign, signData)
+	//0115	STDing
+	ht.HeaderSet(proto.HActionEETHSign, signData)
 
 
 	log.Info("QueryEETHDepositesAddr.transInfo url=%s,cur reqdata = %v", UrlVerify, curQueryInfo)
@@ -194,7 +204,10 @@ func (self *TotalDepositHandle) QueryDepositGroupConfig(group string) (getDeposi
 	//1217 update for abit
 	//ht.HeaderSet(proto.HActionTMexSign, signData)
 	//1118 update for abit
-	ht.HeaderSet(proto.HActionAbitSign, signData)
+	//ht.HeaderSet(proto.HActionAbitSign, signData)
+
+	//0116 update for EETH
+	ht.HeaderSet(proto.HActionEETHSign, signData)
 
 
 	log.Info("QueryDepositGroupConfig url=%s,cur reqdata = %v", UrlVerify, curQueryInfo)
@@ -275,13 +288,13 @@ func (self *TotalDepositHandle) EETHDepositesAddrGatter(reqQueryInfo *proto.Depo
 	//end 1205.1
 	//var threshold;
 	//从settlecenter测，获取配置的大账户归集限额
-	configs,bsucc := self.QueryDepositGroupConfig("KTC")
+	configs,bsucc := self.QueryDepositGroupConfig(reqQueryInfo.CoinCode)
 
 	if bsucc != true {
-		log.Error("QueryDepositGroupConfig res err! get configs is:empty")
+		log.Error("QueryDepositGroupConfig res err! cur CoinCode is :%s,get configs is:empty",reqQueryInfo.CoinCode)
 		return 0,false
 	}
-	log.Info("QueryDepositGroupConfig res good! get configs is:%v", configs[0])
+	log.Info("QueryDepositGroupConfig res good! cur CoinCode is :%s,get configs is:%v", reqQueryInfo.CoinCode,configs[0])
 
 	if len(configs) > 0{
 		threshold =configs[0].Threshold
@@ -292,39 +305,70 @@ func (self *TotalDepositHandle) EETHDepositesAddrGatter(reqQueryInfo *proto.Depo
 	log.Info("exec QueryDepositGroupConfig(),get KTC GroupConfig for threshold succ ,threshold values is %.8f\n",threshold)
 
 	//threshold = parseFloat(configs[0].threshold);
-	//threshold = 250
-	//KTCGatterToAddress
-	curGatterToAddress := config.GbConf.KTCGatterToAddress
+
+	//sgj 0115doing
+	var curGatterToAddress string
+	switch reqQueryInfo.CoinCode {
+	case "BTC":
+		curGatterToAddress = config.GbConf.BTCGatterToAddress
+	case "USDT":
+		curGatterToAddress = config.GbConf.USDTGatterToAddress
+	case "ETH":
+		curGatterToAddress = config.GbConf.ETHGatterToAddress
+	}
+
+
 	//curaddrrec,err := GWdcDataStore.GetWDCAddressRec(curGatterToAddress)
 	//12.17 adding
+	if reqQueryInfo.CoinCode == "BTC" || reqQueryInfo.CoinCode == "USDT"{
 
-	curaddrrec,err := GKtcDataStore.GetKTCAddressRec(GKtcDataStore.OrmEngine,curGatterToAddress)
-	// GetKTCAddressRec
-	if err != nil{
-		log.Error("GetKTCAddressRec(),get rows for fromaddress record failed!,KTCTransProc() exec to return.curGatteraddress =%s",curGatterToAddress)
-		return 0,false
+		//curaddrrec,err := GKtcDataStore.GetKTCAddressRec(GKtcDataStore.OrmEngine,curGatterToAddress)
+		curaddrrec,err := GKtcDataStore.GetBTCAddressRec(curGatterToAddress)
+
+		// GetKTCAddressRec
+		if err != nil{
+			log.Error("GetEETHAddressRec(),get rows for fromaddress record failed!,KTCTransProc() exec to return.curGatteraddress =%s",curGatterToAddress)
+			return 0,false
+		}
+		//12.17--try 获取 privkey
+		log.Info("cur cointyp is :%s,exec GetEETHAddressRec,curGatterToAddress is :%s,get curaddrrec info is: %v \n", reqQueryInfo.CoinCode,curGatterToAddress,curaddrrec)
 	}
-	//12.17--try 获取 privkey
-	log.Info("exec GetKTCAddressRec,curGatterToAddress is :%s,get curaddrrec info is: %v \n", curGatterToAddress,curaddrrec)
-
 	//获取大账户余额	curGatterToAddress,
-	//1217,get KTC banlance:
-	unspentLimitAddrTotals :=make([]string,0,3)
-	//fromAddr := "39QXajNbM7aqurkav6DF6vyupY1cn48a8i"
-	unspentLimitAddrTotals = append(unspentLimitAddrTotals,curGatterToAddress)
-
-	getutxoinfo,utxonum,err := ktcrpc.KTCRPCClient.GetRPCTxUnSpentLimit(1,0,unspentLimitAddrTotals)	//"1Eq8xXAea47WPY5t8zUEYDKgcWB7cptZWB")
-	if err != nil {
-		log.Error("curGatterToAddress: %s ,exex GetTxUnSpentLimit() failue! err is: %v \n", curGatterToAddress, err)
-		//	return nil, status, err
-	}
-	//getResp.Data.(*[]proto.WdcTxBlock)
-	log.Info("exec GetTxUnSpentLimit(),addrUtxolist info is: %v ,exex GetAddressUtxo() finished! unxonum is :%d\n", getutxoinfo, utxonum)
+	//0115,get EETH banlance:
 	var addrtotalAmount float64
-	//1217,getall balance
-	for _,curitem := range getutxoinfo{
+	if reqQueryInfo.CoinCode == "BTC" || reqQueryInfo.CoinCode == "USDT" {
 
-		addrtotalAmount += curitem.Amount
+		unspentLimitAddrTotals :=make([]string,0,3)
+		//fromAddr := "39QXajNbM7aqurkav6DF6vyupY1cn48a8i"
+		unspentLimitAddrTotals = append(unspentLimitAddrTotals,curGatterToAddress)
+
+		//getutxoinfo,utxonum,err := ktcrpc.KTCRPCClient.GetRPCTxUnSpentLimit(1,0,unspentLimitAddrTotals)	//"1Eq8xXAea47WPY5t8zUEYDKgcWB7cptZWB")
+		getutxoinfo,utxonum,err := UtxoRPCClient.GetTxUnSpentLimit(curGatterToAddress)
+
+		if err != nil {
+			log.Error("curGatterToAddress: %s ,exex GetTxUnSpentLimit() failue! err is: %v \n", curGatterToAddress, err)
+			//	return nil, status, err
+		}
+		//getResp.Data.(*[]proto.WdcTxBlock)
+		log.Info("exec GetTxUnSpentLimit(),addrUtxolist info is: %v ,exex GetAddressUtxo() finished! unxonum is :%d\n", getutxoinfo, utxonum)
+		//1217,getall balance
+		for _,curitem := range getutxoinfo{
+
+			addrtotalAmount += float64(curitem.Value)
+		}
+	} else {
+		//ETH getblance:
+		getNodeAmount, err := ethclientrpc.GetBalance(curGatterToAddress, "latest")
+		if err != nil {
+			log.Error("get GetBalance num error:%v", err)
+			return 0,false
+			//return nil, proto.ErrorRequestInfuraETHNode.Code, err
+		}
+		getNodeAmountNew := float64(getNodeAmount) / config.EthEtherPrefix
+		//sgj upgrade:
+		//再次移位：
+		addrtotalAmount = getNodeAmountNew / config.EthEtherPrefix
+		log.Info("GetBalance get nonce num succ!,get getNodeAmount is:%d,get getNodeAmountNew is:%f", getNodeAmount, addrtotalAmount)
 	}
 
 	//addrtotalAmount = addrtotalAmount /100000000
@@ -332,12 +376,12 @@ func (self *TotalDepositHandle) EETHDepositesAddrGatter(reqQueryInfo *proto.Depo
 
 	//需要归集的最大额度数量
 	self.GatherLimit = limit
-	log.Info("curGatterToAddress(%s),GetBalance is %.8f,GatherLimit is :%f\n",curGatterToAddress, addrtotalAmount,self.GatherLimit)
+	log.Info("cointype :%s,curGatterToAddress(%s),GetBalance is %.8f,GatherLimit is :%f\n",reqQueryInfo.CoinCode,curGatterToAddress, addrtotalAmount,self.GatherLimit)
 
 
 	//KTCbalance :=244
 	if (addrtotalAmount >= threshold) {
-		log.Info("sufficient KTC balance cur value is %.8f, KTC threshold is :%f",addrtotalAmount,threshold);
+		log.Info("sufficient cointype:%s balance cur value is %.8f, KTC threshold is :%f",reqQueryInfo.CoinCode,addrtotalAmount,threshold);
 		return 0,false;
 	}
 
@@ -348,7 +392,7 @@ func (self *TotalDepositHandle) EETHDepositesAddrGatter(reqQueryInfo *proto.Depo
 	for ino, curAddrItem := range TotalAddressList {
 
 		//12.17doing
-		_,gettxid := self.EETHGatherTransProc(int64(ino),curAddrItem,curGatterToAddress)
+		_,gettxid := self.EETHGatherTransProc(int64(ino),reqQueryInfo.CoinCode,curAddrItem,curGatterToAddress)
 		log.Info("cur KTCGatherTransProc() finished, curAddrItem is %s, curGatterToAddress is:%s,gettxid is:%s,the rest KTC GatherLimit is :%f",curAddrItem,curGatterToAddress,gettxid,self.GatherLimit);
 		//var hash = await _omnisend(addrList[i], balance, fee);
 		if (self.GatherLimit <= 0 ){
@@ -367,11 +411,15 @@ func (self *TotalDepositHandle) EETHDepositesAddrGatter(reqQueryInfo *proto.Depo
 //归集转账过程
 var curKTCFee = 0.002
 
+//sgj 1217,,小于此值，不进行归集处理
+var minBTCLimit = 0.000003
+var minBTCLimitLast = 0.00001
+
 //sgj 0116 to up:,to replace GKtcDataStore,,branch as cointype
 //(errinfo transproto.ErrorInfo,ival uint, retval []interface{}){
-func(self *TotalDepositHandle) EETHGatherTransProc(iseno int64,fromaddress string, toGatherAddr string) (opsuccflag bool, tid string) {
+func(self *TotalDepositHandle) EETHGatherTransProc(iseno int64,cointype string,fromaddress string, toGatherAddr string) (opsuccflag bool, tid string) {
 	var ret bool = false
-	log.Info("KTCGather transfer %s => %s ,coin_type %s\n", fromaddress,toGatherAddr, "KTC")
+	log.Info("EETHGather transfer %s => %s ,coin_type %s\n", fromaddress,toGatherAddr, cointype)
 	defer func() {
 		if e := recover(); e != nil {
 			buf := make([]byte, 1<<16)
@@ -396,17 +444,34 @@ func(self *TotalDepositHandle) EETHGatherTransProc(iseno int64,fromaddress strin
 		toGatherAddr = "1KVcQTbsMuU5jpZSdBRXiKcbbawrGBo9h7"
 	}
 	//ggex.dev.test:1HFCUeNHcL6Drf4TPwBLG6RgYVe9o41BVj
-	curaddrrec,err := GKtcDataStore.GetKTCAddressRec(GKtcDataStore.OrmEngine,getfromAddress)
-	//curaddrrec,err = GWdcDataStore.GetKTCAddressRec(GKtcDataStore.OrmEngine,getfromAddress)
+	var getencrptedAddressPriv string
+	if cointype == "BTC" || cointype == "USDT" {
 
-	//curaddrrec,err := GWdcDataStore.GetWDCAddressRec(getfromAddress)
-	if err != nil{
-		log.Error("GetKTCAddressRec(),get rows for fromaddress record failed!,KTCTransProc() exec to return.curaddress =%s",getfromAddress)
-		return false,""
+		//sgj 0116ing
+		curaddrrec, err := GKtcDataStore.GetBTCAddressRec(getfromAddress)
+		//curaddrrec,err = GWdcDataStore.GetKTCAddressRec(GKtcDataStore.OrmEngine,getfromAddress)
+
+		//curaddrrec,err := GWdcDataStore.GetWDCAddressRec(getfromAddress)
+		if err != nil {
+			log.Error("GetKTCAddressRec(),get rows for fromaddress record failed!,KTCTransProc() exec to return.curaddress =%s", getfromAddress)
+			return false, ""
+		}
+		//getAddressPub := curaddrrec.PubKey
+		getencrptedAddressPriv = curaddrrec.PrivKey
+	}else {
+		curPrikey, err := ethtranssign.GetAddrPrivkeyETH(getfromAddress)
+		if curPrikey == "" || err != nil {
+			log.Info("command %s ,exex GetAddrPrivkeyETH() failue! err is: %v \n", getfromAddress, err)
+			return false, ""
+			//return nil, proto.StatusAccountPrikeyNotExisted, err
+		}
+		getencrptedAddressPriv = curPrikey
+
+		//0116 to update:
+		//tran.Private = curPrikey
+		//getRawTx,errErrInfo:= HServer.DoTransactionPreNew(tran)
+
 	}
-	//getAddressPub := curaddrrec.PubKey
-	getencrptedAddressPriv := curaddrrec.PrivKey
-
 	//sgj 1115 add for encrypto
 	// 对 params 进行 base64 解码
 	log.Info("GetKTCAddressRec(),get getencrptedAddressPriv =====0033---is :%s", getencrptedAddressPriv)
@@ -438,7 +503,7 @@ func(self *TotalDepositHandle) EETHGatherTransProc(iseno int64,fromaddress strin
 	}
 
 	*/
-	var totalNeeds float64 = (minKTCLimit + curKTCFee)	// * 100000000
+	var totalNeeds float64 = (minBTCLimit + curKTCFee)	// * 100000000
 	/*
 	fromMount = fromMount * 100000000
 	*/
@@ -451,25 +516,27 @@ func(self *TotalDepositHandle) EETHGatherTransProc(iseno int64,fromaddress strin
 
 	//12.17 for KTC proc:
 	//sgj 0109 udpate
+	var signInfoRes interface{} = nil
+	var status int
 	signInfoRes, curGatherAmount,status, err := ktctranssign.GKTCSignHandle.PaySignTransProc(fromaddress, getAddressPriv,0,toGatherAddr,self.GatherLimit)
 
 	log.Info("KTCTransProc.SendTransactionPostForm() succ!,toamount1 is :%f,status is:%v,getcur resdata is:%v",curGatherAmount,status,signInfoRes)
 
 	//sgj 20200109 to Add Finished:
-	/*
-	switch curSettItem.CoinCode {
-case config.CoinUSDT:
-   fmt.Printf("USDT--do()")
-   signInfoRes, status, err = omnitranssign.G_UsdtSignHandle.PaySignTransProc(31,nil, curSettItem,config.GbConf.USDTTransferOutAddress,true)
-case config.CoinBitcoin:
-   fmt.Printf("BTC--do()")
-   signInfoRes, status, err = GBtcSignHandle.PaySignTransProc(nil, curSettItem,config.GbConf.BTCTransferOutAddress,true)
 
-case config.CoinEthereum:
-   fmt.Printf("ETH--do()")
-   signInfoRes, status, err = ethtranssign.GEthSignHandle.PaySignTransProc(nil, curSettItem,config.GbConf.ETHTransferOutAddress,true)
+	switch cointype {
+	case config.CoinUSDT:
+		fmt.Printf("USDT--do()")
+		signInfoRes, status, err = omnitranssign.G_UsdtSignHandle.PaySignTransProc(31, fromaddress, getAddressPriv,0,toGatherAddr, self.GatherLimit,true)
+	case config.CoinBitcoin:
+		fmt.Printf("BTC--do()")
+		signInfoRes, curGatherAmount,status, err = GBtcSignHandle.PaySignTransProc(fromaddress, getAddressPriv,0,toGatherAddr,self.GatherLimit)
 
-	*/
+	case config.CoinEthereum:
+		//fmt.Printf("ETH--do()")
+		//signInfoRes, status, err = ethtranssign.GEthSignHandle.PaySignTransProc(nil, curSettItem, config.GbConf.ETHTransferOutAddress, true)
+	}
+	/**/
 	toamount1 := curGatherAmount
 	//1217adding
 	//end sgj 1121ing

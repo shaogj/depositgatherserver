@@ -89,7 +89,7 @@ func (cur *OmniUsdtRpcClient) RpcConnect() (*OmniUsdtRpcClient, error) {
 	//sgj 1119adding
 	curblockcount,err := cur.RpcClient.Call("getblockcount")
 	if err != nil {
-		log.Info("Usdt getblockcount() failure! errinfo: %v,curblockcount is :%v", err,curblockcount)
+		log.Info("Usdt getblockcount() failure! errinfo: %v,curblockcount is :%v", err,curblockcount.Result)
 		//退出进程
 		//log.Fatal(err)
 		return nil, err
@@ -117,7 +117,7 @@ func (cur *OmniUsdtRpcClient) GetHexMsg(txHex string) (*ltcutil.Tx, error) {
 }
 func Getinfo(){
     response, err := OmniRPCClient.RpcClient.Call("getinfo")
-    fmt.Printf("--001---getinfo: ------001--get response info is--001: %v;;err is :%v\n", response,err)
+    fmt.Printf("--001---getinfo: ------001--get response info is--001: %v;;err is :%v\n", response.Result,err)
 
 } 
 func (cur *OmniUsdtRpcClient) SendTransaction(txHexStr string) (txid string, err error) {
@@ -130,7 +130,7 @@ func (cur *OmniUsdtRpcClient) SendTransaction(txHexStr string) (txid string, err
 	*/
 	//response, err := cur.RpcClient.Call("sendrawtransaction",curTx.MsgTx(),true)
 	response, err := cur.RpcClient.Call("sendrawtransaction",cursendstr,true)
-    log.Info("Invoke OmniUsdt's RPC sendrawtransaction(): get response info is: %v;;err is :%v\n", response,err)
+    log.Info("Invoke OmniUsdt's RPC sendrawtransaction(): get response info is: %v;;err is :%v\n", response.Result,err)
 	if err != nil {
 		//log.Printf("SendRawTransaction() err happend!,chainHash is :%v,err is :%v", *chainHash, err)
 		log.Error("SendRawTransaction() err happend!,txHexStr is:%s,err is :%v", txHexStr,err)

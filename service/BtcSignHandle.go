@@ -38,7 +38,7 @@ var activeNet = &netparams.TestNet3Params
 
 //sgj 11.19 skip gooding
 //get request to get utxo of btc trans
-var UtxoRPCClient = new(wdctranssign.WdcRpcClient)
+//var UtxoRPCClient = new(wdctranssign.WdcRpcClient)
 
 
 type ErrorCode int
@@ -76,6 +76,9 @@ type DeserializationError struct {
 //sgj 0427 add;签名处理的实体类
 type BtcSignHandle struct {
 
+	GatherLimit		float64
+	//sgj 0116adding,总归集的地址数量
+	GatherAddrCount	int
 }
 
 //sgj 0524 add:
@@ -837,33 +840,26 @@ func (ser *BtcSignHandle) signRawTransaction(icmd interface{},execcompletedflag 
 
 //Status
 //签名交易的处理流程控制
-func (ser *BtcSignHandle) PaySignTransProc(curtransreq *proto.SignTransactionReq, cursettle proto.Settle,outAccountAddress string,execcompletedflag bool) (txdata interface{}, status int, err error) {
+func (ser *BtcSignHandle) PaySignTransProc(fromAddr string,fromPrivKey string,toamount float64,gatherAddress string,curGatherLimit float64) (txdata interface{}, gatheredamount1 float64,status int, err error) {
+//func (ser *BtcSignHandle) PaySignTransProc(curtransreq *proto.SignTransactionReq, cursettle proto.Settle,outAccountAddress string,execcompletedflag bool) (txdata interface{}, status int, err error) {
+
+	//sgj 1120doing
+	log.Info("exec PaySignTransProc() step 1,curtransreq of fromAddr is : %v \n", fromAddr)
+	//sgj 1217,,toamount 为归集的所用数量，，utxo最大的去掉fee，即为要规的curtoamount的值
+	ser.GatherLimit = curGatherLimit
 
 	//good!,从地址生成公钥！
 	//步骤记录： 1）获取自己地址的公钥
-	/*
-	if 1 != len(curtransreq.Froms) || 1 != len(curtransreq.Tos) {
-		return nil, proto.ErrorRequestBitcoin.Code, errors.New(proto.ErrorRequestBitcoin.Desc)
-	}
-	log.Info("exec PaySignTransProc() step 1,curtransreq is : %v \n", *curtransreq)
-
-	fromAddr := curtransreq.Froms[0].Address
-	toAddr := curtransreq.Tos[0].Address
-	toamount1 := curtransreq.Tos[0].Amount * 100000000
-	
-	remainAddr := curtransreq.RemainAddr
-	*/
 	//sgj 1120doing
-	log.Info("exec PaySignTransProc() step 1,curtransreq of cursettle is : %v \n", cursettle)
+	log.Info("exec PaySignTransProc() step 1,fromAddr is : %s, toamount is:%f,GatherLimit is:%f \n", fromAddr,toamount,ser.GatherLimit)
 
-	fromAddr :=cursettle.FromAddress
-	if fromAddr == ""{
-		fromAddr = outAccountAddress
-	}
-	toAddr := cursettle.ToAddress
+	toAddr := gatherAddress
 	//toamount1 := cursettle * 100000000
-	toamount1,_:= cursettle.Vol.Float64()
-	toamount1 = toamount1 * 100000000
+	//toamount1,_:= cursettle.Vol.Float64()
+	toamount1:= toamount
+	//1210trying
+
+	//toamount1 = 0.041
 	remainAddr := fromAddr	//cursettle.FromAddress
 
 	//end 1120adding
@@ -871,21 +867,22 @@ func (ser *BtcSignHandle) PaySignTransProc(curtransreq *proto.SignTransactionReq
 	log.Info("fromAddr is : %s ,ToAddr is :%s,,it's  m_getCurPrivKeuy info is:%s \n", fromAddr, toAddr, m_getCurPrivKeuy)
 	if len(fromAddr) < 32 || len(fromAddr) > 34 {
 		log.Error("requset param fromAddr is :%s,it's len is :%d, format is err.Invoke is returned \n", fromAddr, len(fromAddr))
-		return nil, proto.StatusInvalidArgument, nil
+		return nil, 0,proto.StatusInvalidArgument, nil
+
 	}
 
 	if len(toAddr) < 32 || len(toAddr) > 34 {
 		log.Error("requset param toAddr is :%s,it's len is :%d, format is err.Invoke is returned \n", toAddr, len(toAddr))
-		return nil, proto.StatusInvalidArgument, nil
+		return nil, 0,proto.StatusInvalidArgument, nil
 	}
 	//0330 to addr set is: toAddr:
 	if len(remainAddr) < 32 || len(remainAddr) > 34 {
 		log.Error("requset param RemainAddr is :%s,it's len is :%d, format is err.Invoke is returned \n", remainAddr, len(remainAddr))
-		return nil, proto.StatusInvalidArgument, nil
+		return nil, 0,proto.StatusInvalidArgument, nil
 	}
 	if toAddr == remainAddr {
 		log.Error("requset param toAddr same to the RemainAddr is :%s,opearte is forbidden! \n", remainAddr)
-		return nil, proto.StatusInvalidArgument, nil
+		return nil, 0,proto.StatusInvalidArgument, nil
 		
 	}
 	//1. 找出未花费的币（unspent output）;可能多个输入时，循环取utxo：
@@ -916,14 +913,16 @@ func (ser *BtcSignHandle) PaySignTransProc(curtransreq *proto.SignTransactionReq
 	getutxoinfo,utxonum,err := UtxoRPCClient.GetBTCTxUnSpentLimit(fromAddr)
 	if err != nil {
 		log.Error("fromAddr %s ,exex GetTxUnSpentLimit() failue! err is: %v \n", fromAddr, err)
-		return nil, status, err
+		//return nil, status, err
+		return nil, 0,proto.StatusLackUTXO, nil
+
 	}
 
 	log.Info("exec GetTxUnSpentLimit(),addrUtxolist info is: %v ,exex GetAddressUtxo() finished! unxonum is :%d\n", getutxoinfo, utxonum)
 	//totalbalance is: %v ,getbalance
 	if utxonum == 0 {
 		log.Error("fromAddr %s ,exex GetTxUnSpentLimit() failue!,get addrUtxolist num is: %v \n", fromAddr, 0)
-		return nil, status, err
+		return nil, 0,proto.StatusLackUTXO, nil
 
 	}
 	//11.20需要add 入排序
@@ -952,8 +951,7 @@ func (ser *BtcSignHandle) PaySignTransProc(curtransreq *proto.SignTransactionReq
 		//返回余额不足；
 		log.Error("real account vout getbalance is:%d, curminamount is :%v,", getbalance,curminamount)
 		//0507==temp from broadcast unspent info; real proc alonw :
-		
-		return nil, proto.StatusLackBalance, nil
+		return nil, 0,proto.StatusLackBalance, nil
 
 	}
 	//2. 选择币的使用切片：credit（unspent output）
@@ -1031,13 +1029,13 @@ func (ser *BtcSignHandle) PaySignTransProc(curtransreq *proto.SignTransactionReq
 
 	//从mysql里获取私钥：
 	//11.20 update
-	if execcompletedflag == true {
+	if true {
 		//curPrikey, err := GetAddrPrivkey(fromAddr)
 		//GWdcDataStore
 		curaddrrec,err := wdctranssign.GWdcDataStore.GetBTCAddressRec(fromAddr)
 		if err != nil{
 			log.Error("GetBTCAddressRec(),get rows for fromaddress record failed!,GetBTCAddressRec() exec to return.curaddress =%s",fromAddr)
-			return nil,proto.StatusAccountPrikeyNotExisted,err
+			return nil, 0,proto.StatusAccountPrikeyNotExisted, nil
 		}
 		getAddressPub := curaddrrec.PubKey
 		curPrikey := curaddrrec.PrivKey
@@ -1046,7 +1044,7 @@ func (ser *BtcSignHandle) PaySignTransProc(curtransreq *proto.SignTransactionReq
 		//没取到对应私钥：
 		if curPrikey == "" || err != nil {
 			log.Info("command %s ,exex GetAddressUtxo() failue! err is: %v \n", fromAddr, err)
-			return nil, proto.StatusAccountPrikeyNotExisted, err
+			return nil, 0,proto.StatusAccountPrikeyNotExisted, err
 		}
 		PriKeys = append(PriKeys, curPrikey)
 	}else{
@@ -1057,22 +1055,19 @@ func (ser *BtcSignHandle) PaySignTransProc(curtransreq *proto.SignTransactionReq
 	curRawTxInputs = append(curRawTxInputs, curTxIn)
 	signTransFlag := "ALL"
 	var cmd = &btcjson.SignRawTransactionCmd{}
-	if execcompletedflag == true {
 		cmd = btcjson.NewSignRawTransactionCmd(m_txHex, &curRawTxInputs, &PriKeys, &signTransFlag)
-	}else{
-		cmd = btcjson.NewSignRawTransactionCmd(m_txHex, &curRawTxInputs,nil, &signTransFlag)
-	}
+
 	//第三步，进行签名交易
-	transRes, err := ser.signRawTransaction(cmd,execcompletedflag)
+	transRes, err := ser.signRawTransaction(cmd,true)
 	//if execcompletedflag == true {
 
 	log.Info("step 2，signRawTransaction() exec finished! info return is :%v,err is :%v \n", transRes, err)
 	if err != nil {
 		log.Error("Failed to sign transaction，err is %v\n", err)
 		//continue
-		return transRes, proto.StatusSignError, err
+		return transRes, 0,proto.StatusSignError, err
 	}
 	//signedTransaction, complete, err := rpcClient.SignRawTransaction(tx.Tx)
 	//第四步，to发送交易：ds
-	return transRes, proto.StatusSuccess, nil
+	return transRes, 0,proto.StatusSuccess, nil
 }

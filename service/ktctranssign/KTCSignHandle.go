@@ -6,8 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strconv"
-	"time"
-
 	//"time"
 
 	"github.com/btcsuite/btcd/btcjson"
@@ -523,7 +521,9 @@ func (ser *KTCSignHandle) PaySignTransProc(fromAddr string,fromPrivKey string,to
 	log.Info("exec GetAddrUTXO(),form addrUtxolist,selAmountIndex is :%d，getutxoinfo is:%v\n",selAmountIndex,getutxoinfo[selAmountIndex])
 
 	//sg 1210 watching:
-	time.Sleep(time.Second * 4)
+	//sgj 0116 skip the sleep
+	//time.Sleep(time.Second * 4)
+
 	addrUtxolist = append(addrUtxolist,getutxoinfo[selAmountIndex])
 
 	log.Info("get selAmountIndex is:%d,real account info: addrUtxolist[0].TxidHex is:%s, vout is :%d,amount is :%f,", selAmountIndex,addrUtxolist[0].Txid, addrUtxolist[0].Vout, addrUtxolist[0].Amount)
