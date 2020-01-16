@@ -25,7 +25,16 @@
   "WDCGatterConfigUrl" :"https://devapi.ggex.com/v1/settle/getconfig?action=query",
 
   "KTCGatterToAddress" :"39QXajNbM7aqurkav6DF6vyupY1cn48a8i",
+
+  "BTCGatterToAddress" :"13xDZqDS8Z8752ksHR4rCUhLt4cjGsZDkS",
+  "USDTGatterToAddress" :"13xDZqDS8Z8752ksHR4rCUhLt4cjGsZDkS",
+
+
+  "ETHGatterToAddress" :"0x987734c06522264316ce28fF6D9e60111125d95f",
+
   "KTCGatterConfigUrl" :"https://api.tigermex.com/v1/settle/getconfig?action=query",
+
+  "EETHGatterConfigUrl" :"https://api.eethex.com/v1/settle/getconfig?action=query",
 
   "SettleAccessKey":{
     "AccessComePubKey" : "0xb14e11b557077674077586d8A6F0C623E8E5A70A",

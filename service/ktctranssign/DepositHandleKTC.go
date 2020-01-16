@@ -1,8 +1,7 @@
 package ktctranssign
 
 import (
-	//"2019NNZXProj10/TiggerServerPlatform/service/ktctranssign"
-	//"2019NNZXProj10/TiggerServerPlatform/service/ktctranssign"
+
 	"2019NNZXProj10/depositgatherserver/service/wdctranssign"
 	"encoding/base64"
 	"runtime"

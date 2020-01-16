@@ -15,7 +15,7 @@ import (
 	//sgj 0514 set:
 	//"github.com/ltcsuite/ltcd/rpcclient"
 	"github.com/ltcsuite/ltcutil"
-	//"2019NNZXProj10/TiggerServerPlatform/config"
+	//"2019NNZXProj10/depositgatherserver/config"
 	"2019NNZXProj10/depositgatherserver/config"
 
 	"encoding/hex"

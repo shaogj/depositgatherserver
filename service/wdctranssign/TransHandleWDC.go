@@ -99,6 +99,29 @@ func (self *WdcDataStore) GetKTCAddressRec(curKtcOrm *xorm.Engine,curaddress str
 	return address_info,nil
 
 }
+
+//20190109 ,add for BTC address:
+func (self *WdcDataStore) GetBTCAddressRec(curaddress string) (curaddrrec *models.WdcAccountKey, err error) {
+
+	address_info := new(models.WdcAccountKey)
+	bret,err := self.OrmEngine.Table("btc_account_key").Where("address=?", curaddress).Get(address_info)
+	if err != nil {
+		log.Error("GetBTCAddressRec(), curaddress is :%s,error=%v",curaddress,err)
+		return nil,err
+	}
+	//sgj 1016 add:
+	if bret == false{
+		log.Error("GetBTCAddressRec(),get rows failed,curaddress =%s,exist no row",curaddress)
+	}else{
+		log.Info("GetBTCAddressRec(),get rows succ,curaddress =%s,get row=%v",curaddress,address_info)
+	}
+
+	return address_info,nil
+
+}
+
+
+
 //11.26 adding
 func (self *WdcDataStore) UtxoWdcAccount(seriid int,addressid string,curNewPrivKey string) (bool,error) {
 

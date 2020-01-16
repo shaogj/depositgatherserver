@@ -263,6 +263,41 @@ func (cur *WdcRpcClient) GetBlockHeight() (blockHeight float64,err error) {
 
 }
 
+//20200109----add form utxo for:https://blockchain.info/unspent?active=1Eq8xXAea47WPY5t8zUEYDKgcWB7cptZWB
+//getBlockTrans interface{},
+
+func (cur *WdcRpcClient) GetBTCTxUnSpentLimit(address string) (getBtcUtxoInfo []proto.BtcUtxoInfo,count int,err error) {
+	//resNodeRet := proto.NodeResponse{    }
+	retbtcutxoinfo := make([]proto.BtcUtxoInfo,0,10)
+	resNodeRet :=proto.BTCUnspentOutputs{}
+	//WDCNodeUrl
+	BlockChainUrl := "https://blockchain.info/unspent?active="
+	BlockChainUrlStr := fmt.Sprintf("%s%s",BlockChainUrl,address)
+	UrlVerify := BlockChainUrlStr
+	//fmt.Sprintf("%s/%s", BlockChainUrlStr, "height")
+
+	//sgj 0106PMadd,,to upgrade timeout for BTC,5s,to 15s
+	strRes, statusCode, errorCode, err := cur.HtClient.RequestResponseJson(UrlVerify, nil,15000, &resNodeRet)
+	if nil != err {
+		log.Error("ht.RequestResponseJsonJson  status=%d,error=%d.%v url=%s ", statusCode, errorCode, err, UrlVerify)
+		return retbtcutxoinfo,0,err
+	}
+	log.Info("WdcRpcClient.GetTxUnSpentLimit,get statusCode is :%s,res=%s",statusCode, strRes)
+	//var curBlockHeight float64
+	//resNodeRet
+	if len(resNodeRet.CurBtcUtxoInfo) >0 {
+		//if statusCode == proto.ErrorNodeRPCSuccess.Code{
+		retbtcutxoinfo =resNodeRet.CurBtcUtxoInfo
+		log.Info("WdcRpcClient. get GetTxUnSpentLimit succ,value is:%v", retbtcutxoinfo)
+	}else{
+		log.Error("WdcRpcClient. get GetTxUnSpentLimit error!,value is:%v,statusCode is:%s", retbtcutxoinfo,statusCode)
+		return retbtcutxoinfo,0,err
+	}
+	return retbtcutxoinfo,len(retbtcutxoinfo),nil
+	//return getResp.Data.(*[]proto.WdcTxBlock),nil,""
+
+
+}
 
 //1105add,pubkeyHashToAddress,解析区块所用
 //4）通过公钥哈希获得地址

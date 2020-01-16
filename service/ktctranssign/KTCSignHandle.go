@@ -27,9 +27,7 @@ import (
 
 	"encoding/json"
 
-	//"2019NNZXProj10/TiggerServerPlatform/proto"
 	"2019NNZXProj10/depositgatherserver/proto"
-	//"2019NNZXProj10/TiggerServerPlatform/service/ktctranssign/ktcrpc"
 	"2019NNZXProj10/depositgatherserver/service/ktctranssign/ktcrpc"
 )
 

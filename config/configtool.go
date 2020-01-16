@@ -142,6 +142,16 @@ type ConfigInfomation struct {
 	//KTC归集的获取配置接口，可选
 	KTCGatterConfigUrl    string         `json:"KTCGatterConfigUrl"`
 
+	//sgj 0116 upgrade for EETH
+	//EETH's BTC,归集的大账户地址
+	BTCGatterToAddress   string         `json:"BTCGatterToAddress"`
+	///EETH's USDT,归集的大账户地址
+	USDTGatterToAddress    string         `json:"USDTGatterToAddress"`
+	///EETH's ETH,归集的大账户地址
+	ETHGatterToAddress    string         `json:"ETHGatterToAddress"`
+	//EETH归集的获取配置接口，可选
+	EETHGatterConfigUrl    string         `json:"EETHGatterConfigUrl"`
+
 }
 
 func InitWithProviders(providers, dir string) error {

@@ -272,3 +272,24 @@ func  Success(status ErrorInfo ) bool {
 	return  false
 
 }
+
+//sgj 20200109--add :
+//https://blockchain.info/unspent?active=
+type BtcUtxoInfo struct {
+	TxHash string `json:"tx_hash"`
+	TxHashBigEndian string `json:"tx_hash_big_endian"`
+	TxOutputN int64  `json:"tx_output_n"`
+	Script string `json:"script"`
+
+	Value int64  `json:"value"`
+	ValueHex string `json:"value_hex"`
+	Confirmations int64  `json:"confirmations"`
+	TxIndex int64  `json:"tx_index"`
+
+}
+
+//
+type BTCUnspentOutputs struct {
+	CurBtcUtxoInfo []BtcUtxoInfo `json:"unspent_outputs"`
+
+}
