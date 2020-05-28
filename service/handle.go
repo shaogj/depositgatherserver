@@ -1,11 +1,13 @@
 package service
 
 import (
+	auth "2019NNZXProj10/depositgatherserver/KeyStore"
 	"2019NNZXProj10/depositgatherserver/config"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
 	//"strings"
 	//"math/big"
 	//"strconv"
@@ -16,14 +18,12 @@ import (
 	transproto "2019NNZXProj10/depositgatherserver/proto"
 	"2019NNZXProj10/depositgatherserver/service/wdctranssign"
 
-	"2019NNZXProj10/depositgatherserver/KeyStore"
-
 	"2019NNZXProj10/depositgatherserver/cryptoutil"
-	"github.com/mkideal/log"
-	. "shaogj/utils"
-	"time"
 	"2019NNZXProj10/depositgatherserver/service/ktctranssign"
+	. "2019NNZXProj10/shaogj/utils"
+	"time"
 
+	"github.com/mkideal/log"
 )
 
 type ReturnInfo struct {
@@ -111,7 +111,7 @@ curl -d '{"cointype": "CoinDSC","accountNumber":4,"IsReturnList": 1}'  http://19
 */
 
 //一个默认的合作商Key
-var GCurGetKeyStr =[]byte("1234567812345678")
+var GCurGetKeyStr = []byte("1234567812345678")
 
 func RemoteSignCreateAddress(w http.ResponseWriter, r *http.Request) {
 
@@ -152,13 +152,12 @@ func RemoteSignCreateAddress(w http.ResponseWriter, r *http.Request) {
 				encrpted, err := cryptoutil.AESCBCEncrypt(GCurGetKeyStr, nil, []byte(getprivkey))
 				if err != nil {
 					log.Error("ccur Encrypt text is:%s,err is:%v", getprivkey, err)
-				}else{
+				} else {
 					encrptedEncodePrivkey = base64.StdEncoding.EncodeToString(encrpted)
-					log.Info("get encrptedEncodeStr len is:%d,val is====44:%s",len(encrptedEncodePrivkey),encrptedEncodePrivkey)
+					log.Info("get encrptedEncodeStr len is:%d,val is====44:%s", len(encrptedEncodePrivkey), encrptedEncodePrivkey)
 				}
 
 				//end add 1115
-
 
 				err = AccountWDCSave(GXormMysql, "", accounts.GAccountPassword, jReq.CoinType, pubKeyAddr, encrptedEncodePrivkey, getpubKey, getpubKeyHash)
 				if err != nil {
@@ -231,27 +230,27 @@ func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 	sttError := transproto.ErrorSuccess
 	var gatherAddrCount int
 	var bret bool
-		if "WDC" == jReq.CoinType {
-			//WithdrawsDepositGatherWDC
-			//1113 测试归集的服务接口调用
+	if "WDC" == jReq.CoinType {
+		//WithdrawsDepositGatherWDC
+		//1113 测试归集的服务接口调用
 
-			//1204,limit set to 50
-			gatherAddrCount, bret = wdctranssign.WithdrawsDepositGatherWDC(0, 50, "WDC")
+		//1204,limit set to 50
+		gatherAddrCount, bret = wdctranssign.WithdrawsDepositGatherWDC(0, 50, "WDC")
 
-			if bret != true {
-				log.Error("cur exec WithdrawsDepositGatherWDC() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
-			} else {
-				log.Info(" cur exec WithdrawsDepositGatherWDC() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
-			}
+		if bret != true {
+			log.Error("cur exec WithdrawsDepositGatherWDC() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount, "errinfomsgskip")
 		} else {
-			GeneJsonResultFin(w, r, nil, 111096, "error  is cointype")
+			log.Info(" cur exec WithdrawsDepositGatherWDC() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
 		}
-		//sgj 0802 add
-		log.Info("exec WithdrawsDepositGatherWDC() success! jReq.CoinType is :%s,gatherAddrCount is: %d", jReq.CoinType, gatherAddrCount)
+	} else {
+		GeneJsonResultFin(w, r, nil, 111096, "error  is cointype")
+	}
+	//sgj 0802 add
+	log.Info("exec WithdrawsDepositGatherWDC() success! jReq.CoinType is :%s,gatherAddrCount is: %d", jReq.CoinType, gatherAddrCount)
 
 	makeaddrs := transproto.DepositAddressGatherRes{
-		Count:         int64(gatherAddrCount),
-		CoinType:      jReq.CoinType,
+		Count:    int64(gatherAddrCount),
+		CoinType: jReq.CoinType,
 	}
 
 	GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)
@@ -290,19 +289,19 @@ func RemoteMonitorWalletKTCAddress(w http.ResponseWriter, r *http.Request) {
 		gatherAddrCount, bret = ktctranssign.WithdrawsDepositGatherKTC(0, 50, "KTC")
 
 		if bret != true {
-			log.Error("cur exec WithdrawsDepositGatherKTC() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
+			log.Error("cur exec WithdrawsDepositGatherKTC() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount, "errinfomsgskip")
 		} else {
 			log.Info(" cur exec WithdrawsDepositGatherKTC() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
 		}
-	}else {
+	} else {
 		GeneJsonResultFin(w, r, nil, 111096, "error  is cointype")
 	}
 	//sgj 0802 add
 	log.Info("exec WithdrawsDepositGatherWDC() success! jReq.CoinType is :%s,gatherAddrCount is: %d", jReq.CoinType, gatherAddrCount)
 
 	makeaddrs := transproto.DepositAddressGatherRes{
-		Count:         int64(gatherAddrCount),
-		CoinType:      jReq.CoinType,
+		Count:    int64(gatherAddrCount),
+		CoinType: jReq.CoinType,
 	}
 
 	GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)
@@ -331,29 +330,29 @@ func RemoteMonitorWalletEETHAddress(w http.ResponseWriter, r *http.Request) {
 	sttError := transproto.ErrorSuccess
 	var gatherAddrCount int
 	var bret bool
-	if "BTC" == jReq.CoinType || "USDT" == jReq.CoinType || "ETH" == jReq.CoinType{
+	if "BTC" == jReq.CoinType || "USDT" == jReq.CoinType || "ETH" == jReq.CoinType {
 		//WithdrawsDepositGatherWDC
 		//1217 测试归集的服务接口调用
 
 		//1204,limit set to 50;;;
 		//1230,limit set to 50,,from 4
-	//	gatherAddrCount, bret = ktctranssign.WithdrawsDepositGatherEETH(0, 50, jReq.CoinType)
+		//	gatherAddrCount, bret = ktctranssign.WithdrawsDepositGatherEETH(0, 50, jReq.CoinType)
 		gatherAddrCount, bret = WithdrawsDepositGatherEETH(0, 50, jReq.CoinType)
 
 		if bret != true {
-			log.Error("cur exec WithdrawsDepositGatherEETH() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
+			log.Error("cur exec WithdrawsDepositGatherEETH() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount, "errinfomsgskip")
 		} else {
 			log.Info(" cur exec WithdrawsDepositGatherEETH() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
 		}
-	}else {
+	} else {
 		GeneJsonResultFin(w, r, nil, 111096, "error  is cointype")
 	}
 	//sgj 0802 add
 	log.Info("exec WithdrawsDepositGatherEETH() success! jReq.CoinType is :%s,gatherAddrCount is: %d", jReq.CoinType, gatherAddrCount)
 
 	makeaddrs := transproto.DepositAddressGatherRes{
-		Count:         int64(gatherAddrCount),
-		CoinType:      jReq.CoinType,
+		Count:    int64(gatherAddrCount),
+		CoinType: jReq.CoinType,
 	}
 
 	GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)

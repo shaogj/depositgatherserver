@@ -1,9 +1,10 @@
 package proto
 
 import (
-	"github.com/shopspring/decimal"
 	"net/http"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 type SETTLE_TYPE int
@@ -21,8 +22,9 @@ const (
 	SETTLE_STATUS_FAILED                 // 7 失败(转账失败)
 )
 const (
-	StatusNewAddressErr        = 201 //  生成账号地址错误
+	StatusNewAddressErr = 201 //  生成账号地址错误
 )
+
 //1217add
 
 //11.19add:
@@ -30,55 +32,53 @@ const (
 // 返回状态码
 const (
 	//StatusSuccess = 0 // 成功
-	StatusEncodeJSONFail       = 102 // 编码json出错
-	StatusDecodeJSONFail       = 103 // 解码json出错
-	StatusParseError           = 104 // 解析出错
-	StatusCommandNotFound      = 105 // 命令未找到
+	StatusEncodeJSONFail  = 102 // 编码json出错
+	StatusDecodeJSONFail  = 103 // 解码json出错
+	StatusParseError      = 104 // 解析出错
+	StatusCommandNotFound = 105 // 命令未找到
 
-	StatusSuccess      = 200// 调用成功
+	StatusSuccess = 200 // 调用成功
 
-	StatusDataSelectErr        = 205 //  查询数据库错误
-	SStatusAddrNotFound         = 206 // 用户地址不存在
-	StatusNewAddrNotExist         = 207 // 此类型新地址不存在
+	StatusDataSelectErr   = 205 //  查询数据库错误
+	SStatusAddrNotFound   = 206 // 用户地址不存在
+	StatusNewAddrNotExist = 207 // 此类型新地址不存在
 
-	StatusLackBalance       	= 301 // 地址余额不足
-	StatusLackUTXO       		= 303 // 地址充值余额信息未发现
-	StatusAccountNotExisted 	= 304 // 地址不存在
-	StatusAccountPrikeyNotExisted 	= 305 //地址私钥不存在
+	StatusLackBalance             = 301 // 地址余额不足
+	StatusLackUTXO                = 303 // 地址充值余额信息未发现
+	StatusAccountNotExisted       = 304 // 地址不存在
+	StatusAccountPrikeyNotExisted = 305 //地址私钥不存在
 
-	StatusSignError       		= 400 // 交易签名失败
-	StatusInvalidArgument      	= 401 // 无效输入参数
+	StatusSignError       = 400 // 交易签名失败
+	StatusInvalidArgument = 401 // 无效输入参数
 	//StatusSignError       		= 400 // 交易签名错误
 	//交易发送
-	StatusShareOrderThemeErr    = 500 //交易广播错误
+	StatusShareOrderThemeErr = 500 //交易广播错误
 	//sgj 1018 add:
-	StatusUtxoTxWaiting       	= 707 // 存在当前地址的交易；等待新的Txid推送返回
-
+	StatusUtxoTxWaiting = 707 // 存在当前地址的交易；等待新的Txid推送返回
 
 )
 
-
 type UnfreezeFundsStatus int
 
-const HActionSign     = "GGEX-ActionSign"
+const HActionSign = "EX-ActionSign"
 
 //sgj 1112 fix add:
-const HActionAbitSign     = "Abit-ActionSign"
+const HActionAbitSign = "EX-ActionSign"
 
 //1217
-const HActionTMexSign     = "TMex-ActionSign"
+const HActionTMexSign = "EX-ActionSign"
 
 //sgj 0106add
-const HActionEETHSign     = "EETH-actionSign"
+const HActionEETHSign = "EX-actionSign"
 
 //1.函数名:	GenerateMultiAddress
 // protocol: 请求: 生成数字支付地址
 type GenerateAddressReq struct {
 	//CoinType    int   `json:"coinType"`     // 数字币类型
 	//Number 		int   `json:"number"`  // 生成数量
-	CoinType 		string		`json:"coinType"`
-	Count 			int64		`json:"accountNumber"`
-	IsReturnList 	int			`json:"IsReturnList"`
+	CoinType     string `json:"coinType"`
+	Count        int64  `json:"accountNumber"`
+	IsReturnList int    `json:"IsReturnList"`
 }
 
 //11.14,开放充值归集指令的接口，面向opsTools：
@@ -86,25 +86,23 @@ type GenerateAddressReq struct {
 type DepositAddressGatherReq struct {
 	EncryptPemTxt string `json:"encryptPemTxt"` // 归集指令私钥密文
 	KeyText       string `json:"keyText"`       // 归集指令私钥秘钥
-	CoinType 		string		`json:"coinType"`
+	CoinType      string `json:"coinType"`
 }
-
 
 // protocol: 返回: 执行充值归集指令的结果
 type DepositAddressGatherRes struct {
-	Count	  int64     `json:"count"`
-	CoinType    string   `json:"coinType"`
+	Count    int64  `json:"count"`
+	CoinType string `json:"coinType"`
 }
 
 //end add 11.14
 
 // protocol: 返回: 生成数字支付地址
 type GenerateAddressRes struct {
-	Count	  int64     `json:"count"`
-	GeneratedAddr 	[]string `json:"getNewAddr"` // 生成地址
-	CoinType    string   `json:"coinType"`
+	Count         int64    `json:"count"`
+	GeneratedAddr []string `json:"getNewAddr"` // 生成地址
+	CoinType      string   `json:"coinType"`
 }
-
 
 type Settle struct {
 	ID            int64               `json:"-" xlsx:"-"`
@@ -158,7 +156,6 @@ type WithdrawsUpdateReq struct {
 	Withdraws []Settle `json:"withdraws,omitempty"`
 	Nonce     int64    `json:"nonce,omitempty"`
 }
-
 
 type WithdrawsUpdateResp struct {
 	Nonce int64 `json:"nonce,omitempty"`
@@ -214,7 +211,6 @@ type WithdrawConfigResp struct {
 	Configs []*CoinDetailConfig `json:"configs"`
 }
 
-
 type Response struct {
 	HTTPCode     int           `json:"-"`
 	Code         string        `json:"errno"`
@@ -226,78 +222,74 @@ type Response struct {
 	MsgData      []interface{} `json:"-"`
 }
 
-
 type ErrorInfo struct {
-	Code  int
+	Code int
 	Desc string
 }
 
-var  (
+var (
 	//请求参数错误
-	ErrorRequest=ErrorInfo{Code:1001,Desc:" 请求参数无效",}
+	ErrorRequest = ErrorInfo{Code: 1001, Desc: " 请求参数无效"}
 
-	ErrorRequestWDCNodeRPC=ErrorInfo{Code:7000,Desc:"请求节点RPC参数无效(WDC)",}
+	ErrorRequestWDCNodeRPC = ErrorInfo{Code: 7000, Desc: "请求节点RPC参数无效(WDC)"}
 	//1030add
 
-	ErrorCoinType=ErrorInfo{Code:1004,Desc:"数字货币类型错误",}
+	ErrorCoinType = ErrorInfo{Code: 1004, Desc: "数字货币类型错误"}
 
-	ErrorNodeRPCSuccess=ErrorInfo{Code:2000,Desc:"调用节点RPC成功",}
-	ErrorRequestWDCNode=ErrorInfo{Code:5000,Desc:"请求Node错误(WDC)",}
+	ErrorNodeRPCSuccess = ErrorInfo{Code: 2000, Desc: "调用节点RPC成功"}
+	ErrorRequestWDCNode = ErrorInfo{Code: 5000, Desc: "请求Node错误(WDC)"}
 
-	ErrorRequestWDCNodeJust=ErrorInfo{Code:7000,Desc:"请求Node校验错误(WDC)",}
+	ErrorRequestWDCNodeJust = ErrorInfo{Code: 7000, Desc: "请求Node校验错误(WDC)"}
 	/*
-	2000 正确
-    2100 已确认
-    2200 未确认
-    5000 错误
-    6000 格式错误
-    7000 校验错误
-    8000 异常
+			2000 正确
+		    2100 已确认
+		    2200 未确认
+		    5000 错误
+		    6000 格式错误
+		    7000 校验错误
+		    8000 异常
 	*/
 
-	ErrorAddress=ErrorInfo{Code:701,Desc:"无效的地址码",}
-	ErrorHttpost=ErrorInfo{Code:801,Desc:"http请求必须为POST方式",}
+	ErrorAddress = ErrorInfo{Code: 701, Desc: "无效的地址码"}
+	ErrorHttpost = ErrorInfo{Code: 801, Desc: "http请求必须为POST方式"}
 
-	ErrorSuccess=ErrorInfo{Code:200,Desc:"调用成功",}
-	ErrorRequestWDCSDK=ErrorInfo{Code:500,Desc:"调用SDK参数无效(WDC)",}
+	ErrorSuccess       = ErrorInfo{Code: 200, Desc: "调用成功"}
+	ErrorRequestWDCSDK = ErrorInfo{Code: 500, Desc: "调用SDK参数无效(WDC)"}
 
-	ErrorGetPrivateKey=ErrorInfo{Code:604,Desc:"无法获取用户私钥",}
+	ErrorGetPrivateKey = ErrorInfo{Code: 604, Desc: "无法获取用户私钥"}
 
-	ErrDecryptFail=ErrorInfo{Code:3333,Desc:"解密json串失败",}
-	ErrVerifyListFail=ErrorInfo{Code:9189,Desc:"人工审核获取订单列表失败",}
+	ErrDecryptFail    = ErrorInfo{Code: 3333, Desc: "解密json串失败"}
+	ErrVerifyListFail = ErrorInfo{Code: 9189, Desc: "人工审核获取订单列表失败"}
 
 	//1129 add
-	ErrorRequestInfuraETHNode=ErrorInfo{Code:7004,Desc:"请求Node错误(ETH)",}
+	ErrorRequestInfuraETHNode = ErrorInfo{Code: 7004, Desc: "请求Node错误(ETH)"}
 
-	ErrorRequestInfuraETHSend=ErrorInfo{Code:7005,Desc:"请求Node错误(ETH)",}
-
+	ErrorRequestInfuraETHSend = ErrorInfo{Code: 7005, Desc: "请求Node错误(ETH)"}
 )
 
-func  Success(status ErrorInfo ) bool {
-	if ErrorSuccess.Code==status.Code {
-		return  true
+func Success(status ErrorInfo) bool {
+	if ErrorSuccess.Code == status.Code {
+		return true
 	}
-	return  false
+	return false
 
 }
 
 //sgj 20200109--add :
 //https://blockchain.info/unspent?active=
 type BtcUtxoInfo struct {
-	TxHash string `json:"tx_hash"`
+	TxHash          string `json:"tx_hash"`
 	TxHashBigEndian string `json:"tx_hash_big_endian"`
-	TxOutputN int64  `json:"tx_output_n"`
-	Script string `json:"script"`
+	TxOutputN       int64  `json:"tx_output_n"`
+	Script          string `json:"script"`
 
-	Value int64  `json:"value"`
-	ValueHex string `json:"value_hex"`
+	Value         int64  `json:"value"`
+	ValueHex      string `json:"value_hex"`
 	Confirmations int64  `json:"confirmations"`
-	TxIndex int64  `json:"tx_index"`
-
+	TxIndex       int64  `json:"tx_index"`
 }
 
 //
 type BTCUnspentOutputs struct {
 	CurBtcUtxoInfo []BtcUtxoInfo `json:"unspent_outputs"`
-
 }

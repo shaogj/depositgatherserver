@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+
 	//"time"
 	"strconv"
 	// "log"
@@ -23,12 +24,13 @@ import (
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcutil"
+
 	//"log"
 	"2019NNZXProj10/depositgatherserver/netparams"
 
 	//"github.com/mkideal/log"
 	//"errors"
-	"github.com/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 	//"encoding/json"
 	"github.com/mkideal/log"
 
@@ -36,14 +38,15 @@ import (
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/btcsuite/btcwallet/waddrmgr"
+
 	// "github.com/btcsuite/btcwallet/wallet/txrules"
 	"strings"
-	"github.com/go-xorm/xorm"
+
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/go-xorm/xorm"
+
 	//1017 add:
 	"2019NNZXProj10/depositgatherserver/service/wdctranssign"
-
-
 )
 
 var activeNet = &netparams.TestNet3Params
@@ -54,6 +57,7 @@ var activeNet = &netparams.TestNet3Params
 var (
 	Omni_MOrmEngine *xorm.Engine = &xorm.Engine{}
 )
+
 type ErrorCode int
 
 const (
@@ -103,14 +107,14 @@ type UsdtSignHandle struct {
 }
 
 //sgj 0524 add:
-func InitUSDTNet(usdtTestNet3 int){
-	if usdtTestNet3 == 1{
+func InitUSDTNet(usdtTestNet3 int) {
+	if usdtTestNet3 == 1 {
 		activeNet = &netparams.TestNet3Params
-	}else{
+	} else {
 		activeNet = &netparams.MainNetParams
 	}
 	//fmt.Printf("in InitLTCNet(),cur ltc parames activeNet is :%v \n", activeNet)
-	
+
 }
 
 // ChangeSource provides P2PKH change output scripts for transaction creation.
@@ -142,40 +146,40 @@ func (ser *UsdtSignHandle) messageToHex(msg wire.Message) (string, error) {
 }
 
 //获取USDT地址的私钥
-func GetAddrPrivkeyUSDT(curaddress string) (addrPrikey string,err error){
-	
-	engineread:= Omni_MOrmEngine
+func GetAddrPrivkeyUSDT(curaddress string) (addrPrikey string, err error) {
+
+	engineread := Omni_MOrmEngine
 	//get address 's [privkey]
-	selectsql := "select * from  btc_account_key where address = '"  + curaddress + "'"
+	selectsql := "select * from  btc_account_key where address = '" + curaddress + "'"
 	addr_accountinfo, err := engineread.Query(selectsql)
-	if err != nil || len(addr_accountinfo) <= 0{
-		log.Info("when GetAddrPrivkey(),curaddress' is:%s ,get privkey error: %v", curaddress,err)
-		return "",err
+	if err != nil || len(addr_accountinfo) <= 0 {
+		log.Info("when GetAddrPrivkey(),curaddress' is:%s ,get privkey error: %v", curaddress, err)
+		return "", err
 	}
 
 	curaddrprivkey := string(addr_accountinfo[0]["priv_key"])
-	log.Info("when GetAddrPrivkey(),curaddress is :%s,get addr's privkey succ ,info is: %v", curaddress,curaddrprivkey)
-	return curaddrprivkey,nil
+	log.Info("when GetAddrPrivkey(),curaddress is :%s,get addr's privkey succ ,info is: %v", curaddress, curaddrprivkey)
+	return curaddrprivkey, nil
 }
 
 //请求数字币,USDT of btc layer，未花费的排序过的balance,按ut.value 倒排
-func GetAddrBalanceUnspentUSDT(curaddress string) (getaddrutxos []proto.AddrBalanceUnspent,status int,balance float64,err error){
-	
-	engineread:= Omni_MOrmEngine
+func GetAddrBalanceUnspentUSDT(curaddress string) (getaddrutxos []proto.AddrBalanceUnspent, status int, balance float64, err error) {
+
+	engineread := Omni_MOrmEngine
 	var totalbalance float64
 	//同address包含的txid所属各amount数进行匹配及合并
 	//comutxosql := "select ut.id,ut.addrdisp,ut.value,ut.tx_id,ut.vout,ut.txcurid,floor(ut.block_id/10000) as blockid ,generate_time from address_utxo ut,outputs o where ut.tx_id=floor(o.id/4096) and ut.value = o.value and o.tx_id is null and addrdisp= '"  + curaddress + "'" + " order by ut.value desc"
 	//sgj 0830 updating:
-	comutxosql := "select DISTINCT ut.id,ut.addrdisp,ut.value,ut.tx_id,ut.vout,ut.txcurid,ut.block_id from outputs_multy o,address_utxo ut where ut.id =floor(o.out_id/4096) and ut.value =o.value and addrdisp = '"  + curaddress + "'" + " and  o.txcurid < ' '" + " order by ut.value desc";
+	comutxosql := "select DISTINCT ut.id,ut.addrdisp,ut.value,ut.tx_id,ut.vout,ut.txcurid,ut.block_id from outputs_multy o,address_utxo ut where ut.id =floor(o.out_id/4096) and ut.value =o.value and addrdisp = '" + curaddress + "'" + " and  o.txcurid < ' '" + " order by ut.value desc"
 
 	addr_outputtxlist, err := engineread.Query(comutxosql)
 	if err != nil {
-		fmt.Println("when GetAddrUTXO(),get curaddress is:%v,error: %v", curaddress,err)
-		return nil, proto.StatusDataSelectErr,0,err
+		fmt.Println("when GetAddrUTXO(),get curaddress is:%v,error: %v", curaddress, err)
+		return nil, proto.StatusDataSelectErr, 0, err
 	}
 	if len(addr_outputtxlist) <= 0 {
 		fmt.Println("when GetAddrUTXO(),get curaddress is:%v,no find relevent record!", curaddress)
-		return nil, proto.StatusLackUTXO,0,nil
+		return nil, proto.StatusLackUTXO, 0, nil
 	}
 	curAddrPayInfo := new(proto.AddrBalanceUnspent)
 
@@ -185,12 +189,12 @@ func GetAddrBalanceUnspentUSDT(curaddress string) (getaddrutxos []proto.AddrBala
 		curAddrPayInfo.TxidHex = string(addr_outputtxlist[i]["txcurid"])
 		curAddrPayInfo.Vout, _ = strconv.Atoi(string(addr_outputtxlist[i]["vout"]))
 		//sgj 0330 update amount:
-		curAddrPayInfo.Amount, _ = strconv.ParseFloat(string(addr_outputtxlist[i]["value"]),64)
+		curAddrPayInfo.Amount, _ = strconv.ParseFloat(string(addr_outputtxlist[i]["value"]), 64)
 		//curAddrPayInfo.Amount = curAddrPayInfo.Amount / 100000000
 		getaddrutxos = append(getaddrutxos, *curAddrPayInfo)
 		totalbalance += curAddrPayInfo.Amount
 	}
-	return getaddrutxos,0,totalbalance,nil
+	return getaddrutxos, 0, totalbalance, nil
 
 }
 
@@ -647,13 +651,13 @@ func (ser *UsdtSignHandle) SignTransaction(tx *wire.MsgTx, hashType txscript.Sig
 
 //处理签名交易的command.
 
-func (ser *UsdtSignHandle) signRawTransaction(icmd interface{},execcompletedflag bool) (interface{}, error) {
+func (ser *UsdtSignHandle) signRawTransaction(icmd interface{}, execcompletedflag bool) (interface{}, error) {
 	cmd := icmd.(*btcjson.SignRawTransactionCmd)
 
 	//0727,,若Go2Sever，参数中得到m_txHex的值：
 	if execcompletedflag == true {
 		m_txHex = cmd.RawTx
-	}	
+	}
 	//serializedTx2, err := ser.decodeHexStr(m_txHex)
 	//sgj 0612 update
 	serializedTx2, err := ser.decodeHexStr(cmd.RawTx)
@@ -882,7 +886,7 @@ func (ser *UsdtSignHandle) signRawTransaction(icmd interface{},execcompletedflag
 			Complete: len(signErrors) == 0,
 			Errors:   signErrors,
 		}, nil
-	}else{
+	} else {
 		//
 		//cmdPartSignRes := icmd.(*btcjson.SignRawTransactionCmd)
 		//sgj 0716 add:返回部分交易的结构数据
@@ -899,12 +903,11 @@ func (ser *UsdtSignHandle) signRawTransaction(icmd interface{},execcompletedflag
 		cmdPartSignRes := &btcjson.SignRawTransactionCmd{
 			//in Goserver2.handle:
 			//signErrs, err := ser.SignTransaction(&tx, hashType, inputs, keys, scripts)
-			RawTx: Hexstrinfo,
+			RawTx:  Hexstrinfo,
 			Inputs: cmd.Inputs,
-			Flags: cmd.Flags,
-		
+			Flags:  cmd.Flags,
 		}
-		return cmdPartSignRes,nil
+		return cmdPartSignRes, nil
 	}
 
 }
@@ -926,7 +929,7 @@ func (ser *UsdtSignHandle) MakeMyTransaction(inputs []btcjson.TransactionInput,
 
 //进行Usdt的签名交易---->同理按BTC的进行签名
 //func (ser *UsdtSignHandle) ExecHandleProc(totalTxInputs []*btcjson.RawTxInput)(txdata interface{}, status int, err error) {
-func (ser *UsdtSignHandle) ExecSignHandleProc(fromAddr string,curtxUSDTHex string,totalInputs []*omnijson.PreTx,execcompletedflag bool)(txdata interface{}, status int, err error) {
+func (ser *UsdtSignHandle) ExecSignHandleProc(fromAddr string, curtxUSDTHex string, totalInputs []*omnijson.PreTx, execcompletedflag bool) (txdata interface{}, status int, err error) {
 	curRawTxInputs := []btcjson.RawTxInput{}
 
 	for _, curusdttxitem := range totalInputs {
@@ -953,26 +956,26 @@ func (ser *UsdtSignHandle) ExecSignHandleProc(fromAddr string,curtxUSDTHex strin
 			return nil, proto.StatusAccountPrikeyNotExisted, err
 		}
 		PriKeys = append(PriKeys, curPrikey)
-	}else{
+	} else {
 		PriKeys = append(PriKeys, "")
 	}
 
 	signTransFlag := "ALL"
 	var cmd = &btcjson.SignRawTransactionCmd{}
 	/*
-	if execcompletedflag == true {
-		cmd = btcjson.NewSignRawTransactionCmd(m_txHex, &curRawTxInputs, &PriKeys, &signTransFlag)
-	}else{
-		//sgj 0920 fix bug:
-		cmd = btcjson.NewSignRawTransactionCmd(curtxUSDTHex, &curRawTxInputs,nil, &signTransFlag)
-	}
+		if execcompletedflag == true {
+			cmd = btcjson.NewSignRawTransactionCmd(m_txHex, &curRawTxInputs, &PriKeys, &signTransFlag)
+		}else{
+			//sgj 0920 fix bug:
+			cmd = btcjson.NewSignRawTransactionCmd(curtxUSDTHex, &curRawTxInputs,nil, &signTransFlag)
+		}
 	*/
 	//sjg 0608 update:
 	//form m_txHex to m_txUSDTHex
 	cmd = btcjson.NewSignRawTransactionCmd(curtxUSDTHex, &curRawTxInputs, &PriKeys, &signTransFlag)
 
 	//第三步，进行签名交易
-	transRes, err := ser.signRawTransaction(cmd,execcompletedflag)
+	transRes, err := ser.signRawTransaction(cmd, execcompletedflag)
 	log.Info("step 2，signRawTransaction() exec finished! info return is :%v,err is :%v \n", transRes, err)
 	if err != nil {
 		log.Error("Failed to sign transaction，err is %v\n", err)
@@ -985,25 +988,24 @@ func (ser *UsdtSignHandle) ExecSignHandleProc(fromAddr string,curtxUSDTHex strin
 
 }
 
-
 //签名交易的处理流程控制
-func (ser *UsdtSignHandle) GetVerifiedParams(fromAddrCur string,fromPrivKey string,toamountcur float64,gatherAddress string) (fromAddr,toAddr, remainAddr string,toamount float64,errcode int,err error) {
+func (ser *UsdtSignHandle) GetVerifiedParams(fromAddrCur string, fromPrivKey string, toamountcur float64, gatherAddress string) (fromAddr, toAddr, remainAddr string, toamount float64, errcode int, err error) {
 
 	log.Info("exec PaySignTransProc() step 1,fromAddrCur is : %v \n", fromAddrCur)
 
-	fromAddr =fromAddrCur
+	fromAddr = fromAddrCur
 
 	toAddr = gatherAddress
 	//toamount1 := cursettle * 100000000
 	////sgj 1121PMdoing:临时交易数据data：
 
 	//toamount1,_:= cursettle.Vol.Float64()
-	toamount1 :=toamountcur
+	toamount1 := toamountcur
 	//sgj 0106doing
 	//toamount1 = 0.14
 
 	//toamount1 = toamount1 * 100000000
-	remainAddr = fromAddr  //cursettle.FromAddress
+	remainAddr = fromAddr //cursettle.FromAddress
 
 	if len(fromAddr) < 32 || len(fromAddr) > 34 {
 		log.Error("requset param fromAddr is :%s,it's len is :%d, format is err.Invoke is returned \n", fromAddr, len(fromAddr))
@@ -1022,15 +1024,16 @@ func (ser *UsdtSignHandle) GetVerifiedParams(fromAddrCur string,fromPrivKey stri
 	if toAddr == remainAddr {
 		log.Error("requset param toAddr same to the RemainAddr is :%s,opearte is forbidden! \n", remainAddr)
 		return "", "", "", 0, proto.StatusInvalidArgument, nil
-		
+
 	}
-	return fromAddr,toAddr, remainAddr,toamount1,0,nil
+	return fromAddr, toAddr, remainAddr, toamount1, 0, nil
 
 }
+
 //a := strconv.FormatFloat(10.010, 'f', -1, 64)
 //输出：10.01
 func FloatTostrwithprec(fv float64, prec int) string {
-    return strconv.FormatFloat(fv, 'f', prec, 64)
+	return strconv.FormatFloat(fv, 'f', prec, 64)
 }
 
 //sgj 0116doing
@@ -1038,11 +1041,11 @@ var UtxoRPCClientUSDT = new(wdctranssign.WdcRpcClient)
 
 //propertyid,资产ID
 //fromAddr string,fromPrivKey string,toamount float64,gatherAddress string,curGatherLimit float64
-func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,fromAddr string,fromPrivKey string,toamount float64,gatherAddress string,curGatherLimit float64,execcompletedflag bool) (txdata interface{}, status int, err error) {
+func (ser *UsdtSignHandle) PaySignTransProc(propertyid int, fromAddr string, fromPrivKey string, toamount float64, gatherAddress string, curGatherLimit float64, execcompletedflag bool) (txdata interface{}, status int, err error) {
 
-//func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,curtransreq *proto.SignTransactionReq,cursettle proto.Settle,outAccountAddress string,execcompletedflag bool) (txdata interface{}, status int, err error) {
+	//func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,curtransreq *proto.SignTransactionReq,cursettle proto.Settle,outAccountAddress string,execcompletedflag bool) (txdata interface{}, status int, err error) {
 
-	fromAddr,toAddr, remainAddr,toamount,paramstatus,err := ser.GetVerifiedParams(fromAddr,fromPrivKey,toamount,gatherAddress)
+	fromAddr, toAddr, remainAddr, toamount, paramstatus, err := ser.GetVerifiedParams(fromAddr, fromPrivKey, toamount, gatherAddress)
 	if paramstatus > 0 {
 		return nil, proto.StatusInvalidArgument, nil
 	}
@@ -1050,19 +1053,19 @@ func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,fromAddr string,fromP
 	log.Info("fromAddr is : %s ,ToAddr is :%s,,it's  m_getCurPrivKeuy info is:%s \n", fromAddr, toAddr, m_getCurPubKey)
 
 	//2018---06.13 by sgj--USDT的amount只取小数点后一位
-	stramount33usdt := FloatTostrwithprec(toamount,-1)
-	log.Info("cur propertyid is :%d,usdt amount value, stramount33usdt val is %s\n", propertyid,toamount,stramount33usdt)
-	rawGetHex := omnirpc.GetSimplesendPayload(propertyid,stramount33usdt)//"0.47"
+	stramount33usdt := FloatTostrwithprec(toamount, -1)
+	log.Info("cur propertyid is :%d,usdt amount value, stramount33usdt val is %s\n", propertyid, toamount, stramount33usdt)
+	rawGetHex := omnirpc.GetSimplesendPayload(propertyid, stramount33usdt) //"0.47"
 	//String rawTxHex = String.format("00000000%08x%016x", currencyId.getValue(), amount.getWillets());
 	//sgj 0727 update:
-	log.Info("Invoke OmniRpc 1), GenscriptPubKeyFormAddr() info: propertyid is :%d,getrawGetHex is: %v\n", propertyid,rawGetHex)
-	 /*
+	log.Info("Invoke OmniRpc 1), GenscriptPubKeyFormAddr() info: propertyid is :%d,getrawGetHex is: %v\n", propertyid, rawGetHex)
+	/*
 	 response, err := omnirpc.OmniRPCClient.RpcClient.Call("omni_createpayload_simplesend", 2, "15.7")
 	 //String rawTxHex = String.format("00000000%08x%016x", currencyId.getValue(), amount.getWillets());
-	 */
+	*/
 
-	addrUtxolist := make([]proto.AddrBalanceUnspent,3,8)
-	getutxoinfo,utxonum,err := UtxoRPCClientUSDT.GetTxUnSpentLimit(fromAddr)
+	addrUtxolist := make([]proto.AddrBalanceUnspent, 3, 8)
+	getutxoinfo, utxonum, err := UtxoRPCClientUSDT.GetTxUnSpentLimit(fromAddr)
 
 	if err != nil {
 		log.Error("fromAddr %s ,exex GetTxUnSpentLimit() failue! err is: %v \n", fromAddr, err)
@@ -1083,21 +1086,21 @@ func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,fromAddr string,fromP
 
 	}
 	//11.20,请求比特币,未花费的排序过的balance,按ut.value 倒排
-	selAmountIndex :=0
-	selectAmountVal:= getutxoinfo[0].Value
-	for iseno,curitem := range getutxoinfo{
-		if curitem.Value > selectAmountVal{
+	selAmountIndex := 0
+	selectAmountVal := getutxoinfo[0].Value
+	for iseno, curitem := range getutxoinfo {
+		if curitem.Value > selectAmountVal {
 			selectAmountVal = curitem.Value
 			selAmountIndex = iseno
 		}
 	}
-	log.Info("exec GetAddrUTXO(),form addrUtxolist,selAmountIndex is :%d，getutxoinfo is:%v\n",selAmountIndex,getutxoinfo[selAmountIndex])
+	log.Info("exec GetAddrUTXO(),form addrUtxolist,selAmountIndex is :%d，getutxoinfo is:%v\n", selAmountIndex, getutxoinfo[selAmountIndex])
 
 	addrUtxolist[0].TxidHex = getutxoinfo[selAmountIndex].TxHashBigEndian
 	addrUtxolist[0].Vout = int(getutxoinfo[selAmountIndex].TxOutputN)
 	addrUtxolist[0].Amount = float64(getutxoinfo[selAmountIndex].Value)
 
-	log.Info("get selAmountIndex is:%d,real account info: addrUtxolist[0].TxidHex is:%s, vout is :%d,amount is :%v,", selAmountIndex,addrUtxolist[0].TxidHex, addrUtxolist[0].Vout, addrUtxolist[0].Amount)
+	log.Info("get selAmountIndex is:%d,real account info: addrUtxolist[0].TxidHex is:%s, vout is :%d,amount is :%v,", selAmountIndex, addrUtxolist[0].TxidHex, addrUtxolist[0].Vout, addrUtxolist[0].Amount)
 
 	getbalance := addrUtxolist[0].Amount
 	log.Info("exec GetAddrUTXO(),addrUtxolist info is: %v ,exex GetAddressUtxo() finished! totalbalance is: %v \n", addrUtxolist, getbalance)
@@ -1106,9 +1109,9 @@ func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,fromAddr string,fromP
 	//curminamount := float64(toamount) + 1000
 	//addres的BTC余额，必须大于需要的最低的BTC‘s fee：
 	//0917,real need 0.00000546 BTC
-	if getbalance < 0.00006{
-	//if getbalance < curminamount{
-		log.Error("real account vout getbalance is:%d, cur to amount is :%v,", getbalance,toamount)
+	if getbalance < 0.00006 {
+		//if getbalance < curminamount{
+		log.Error("real account vout getbalance is:%d, cur to amount is :%v,", getbalance, toamount)
 		return nil, proto.StatusLackBalance, nil
 	}
 	//var irealamount float64
@@ -1118,8 +1121,8 @@ func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,fromAddr string,fromP
 		//amount <=0 ,余额不足，返回；
 		log.Error("omnirpc.Getbalance_MP(),err is====> :%v\n", err)
 	} else {
-		irealtokenamount,_ := strconv.ParseFloat(balanceinfo.Balance, 64)
-		log.Info("omnirpc.Getbalance_MP() exec succ!,get info is :%v;irealtokenamount is :%d\n", balanceinfo,irealtokenamount)
+		irealtokenamount, _ := strconv.ParseFloat(balanceinfo.Balance, 64)
+		log.Info("omnirpc.Getbalance_MP() exec succ!,get info is :%v;irealtokenamount is :%d\n", balanceinfo, irealtokenamount)
 		//sgj 0924 update,for USDT,txfee is 2,judge if lack:
 		//sgj 1120 update minlimit to 0.3
 		//tmp wathcing :
@@ -1128,7 +1131,7 @@ func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,fromAddr string,fromP
 			return nil, proto.StatusLackBalance, nil
 		}
 	}
-	log.Info("Invoke OmniRpc 2), Getbalance_MP() info: propertyid is :%d,fromAddr is: %s\n", propertyid,fromAddr)
+	log.Info("Invoke OmniRpc 2), Getbalance_MP() info: propertyid is :%d,fromAddr is: %s\n", propertyid, fromAddr)
 
 	curinput := []btcjson.TransactionInput{}
 	//找出转出金额，所需要花费对应的Txid：map rec :Txid,Vout,amount1
@@ -1166,8 +1169,8 @@ func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,fromAddr string,fromP
 	//第二次，传给结构体with：Txid
 	//curTxIn := btcjson.RawTxInput{
 	curTxIn := omnijson.PreTx{
-		Txid: perInput.Txid,
-		Vout: perInput.Vout,
+		Txid:         perInput.Txid,
+		Vout:         perInput.Vout,
 		ScriptPubKey: string(preScriptPubKey),
 		//add for usdt:
 		//Value: addrUtxolist[0].Amount,
@@ -1189,20 +1192,19 @@ func (ser *UsdtSignHandle) PaySignTransProc(propertyid int,fromAddr string,fromP
 	fromAddr = remainAddr
 	//getCurRawTxResp, err := omnirpc.OmniRPCClient.Call("omni_createrawtx_change", getNewRawHex, curUstdRawTxInputs, fromAddr, fee, 1)
 	//sgj 1121 watching
-	log.Info("step6 pre==>  to Invoke OmniRpc 5),exec Createrawtx_change(),fromAddr is:%s,toamount is:%f,cur curUstdRawTxInputs is:%v,getNewRawHex info is:%s,err is :%v", fromAddr,toamount,curUstdRawTxInputs,getNewRawHex,err)
+	log.Info("step6 pre==>  to Invoke OmniRpc 5),exec Createrawtx_change(),fromAddr is:%s,toamount is:%f,cur curUstdRawTxInputs is:%v,getNewRawHex info is:%s,err is :%v", fromAddr, toamount, curUstdRawTxInputs, getNewRawHex, err)
 	getCurRawTxResp, err := omnirpc.OmniRPCClient.RpcClient.Call("omni_createrawtx_change", getNewRawHex, curUstdRawTxInputs, fromAddr, fee, 1)
 	if nil != err {
-		log.Error("step6==>Invoke OmniRpc 5),exec Createrawtx_change() err!,req getCurRawTxResp info is:%s,err is :%v", getCurRawTxResp,err)
+		log.Error("step6==>Invoke OmniRpc 5),exec Createrawtx_change() err!,req getCurRawTxResp info is:%s,err is :%v", getCurRawTxResp, err)
 		return
 		return nil, proto.StatusSignError, nil
 	}
-	getNewChangeRawTx :=getCurRawTxResp.Result.(string)
+	getNewChangeRawTx := getCurRawTxResp.Result.(string)
 	//log.Info("step6======>ext Createrawtx_change() succ!,req getCurRawTx info is :%v", getCurRawTx)
 
 	log.Info("step6==>>Invoke OmniRpc 5),exec omni_createrawtx_change(),req getNewChangeRawTx info is :%v\n", getNewChangeRawTx)
 	//与BTC的签名完全一致；
-	signInfoRes, status, err := ser.ExecSignHandleProc(fromAddr, getNewChangeRawTx,curUstdRawTxInputs,execcompletedflag)
+	signInfoRes, status, err := ser.ExecSignHandleProc(fromAddr, getNewChangeRawTx, curUstdRawTxInputs, execcompletedflag)
 	//log.Info("request Pay_SignTransaction() succ ! info is %v; status is :%d,err is :%v", signInfoRes, status, err)
 	return signInfoRes, status, err
 }
-

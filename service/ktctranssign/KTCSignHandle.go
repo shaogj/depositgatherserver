@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strconv"
+
 	//"time"
 
 	"github.com/btcsuite/btcd/btcjson"
@@ -15,7 +16,8 @@ import (
 	"github.com/btcsuite/btcutil"
 
 	"github.com/btcsuite/btcwallet/netparams"
-	"github.com/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
+
 	//add
 	"github.com/go-xorm/xorm"
 	//"strconv"
@@ -44,9 +46,9 @@ var GKTCSignHandle = KTCSignHandle{}
 type KTCSignHandle struct {
 
 	//sgj 1217add from DepositGather
-	GatherLimit		float64
+	GatherLimit float64
 	//sgj 1217adding,总归集的地址数量
-	GatherAddrCount	int
+	GatherAddrCount int
 }
 
 //0911 add:
@@ -143,7 +145,6 @@ func GetAddrPrivkeyKTC(curaddress string) (addrPrikey string, err error) {
 	log.Info("when GetAddrPrivkeyKTC(),curaddress is :%s,get addr's privkey succ ,info is: %v", curaddress, curaddrprivkey)
 	return curaddrprivkey, nil
 }
-
 
 //sgj 1017 add for mult gorouting utxo;
 //sgj 0104 add
@@ -398,14 +399,14 @@ func (ser *KTCSignHandle) signRawTransaction(fromAddr string, icmd interface{}, 
 			Errors:   signErrors,
 		}, nil
 	*/
-		cmdPartSignRes := &btcjson.SignRawTransactionCmd{
-			//in Goserver2.handle:
-			//signErrs, err := ser.SignTransaction(&tx, hashType, inputs, keys, scripts)
-			RawTx:  "Hexstrinfo",
-			Inputs: cmd.Inputs,
-			Flags:  cmd.Flags,
-		}
-		return cmdPartSignRes, nil
+	cmdPartSignRes := &btcjson.SignRawTransactionCmd{
+		//in Goserver2.handle:
+		//signErrs, err := ser.SignTransaction(&tx, hashType, inputs, keys, scripts)
+		RawTx:  "Hexstrinfo",
+		Inputs: cmd.Inputs,
+		Flags:  cmd.Flags,
+	}
+	return cmdPartSignRes, nil
 }
 
 /*
@@ -437,17 +438,16 @@ func FeeDecimal(value float64) float64 {
 	value, _ = strconv.ParseFloat(fmt.Sprintf("%.5f", value), 64)
 	return value
 }
+
 //Status
 //签名交易的处理流程控制
-
 
 //sgj 1217,,小于此值，不进行归集处理
 var minKTCLimit = 0.00005
 var minKTCLimitLast = 0.00001
 
-
 //func (ser *KTCSignHandle) PaySignTransProc(curtransreq *proto.SignTransactionReq, cursettle proto.Settle,outAccountAddress string,execcompletedflag bool) (txdata interface{}, status int, err error) {
-func (ser *KTCSignHandle) PaySignTransProc(fromAddr string,fromPrivKey string,toamount float64,gatherAddress string,curGatherLimit float64) (txdata interface{}, gatheredamount1 float64,status int, err error) {
+func (ser *KTCSignHandle) PaySignTransProc(fromAddr string, fromPrivKey string, toamount float64, gatherAddress string, curGatherLimit float64) (txdata interface{}, gatheredamount1 float64, status int, err error) {
 
 	//sgj 1217,,toamount 为归集的所用数量，，utxo最大的去掉fee，即为要规的curtoamount的值
 	ser.GatherLimit = curGatherLimit
@@ -455,78 +455,77 @@ func (ser *KTCSignHandle) PaySignTransProc(fromAddr string,fromPrivKey string,to
 	//good!,从地址生成公钥！
 	//步骤记录： 1）获取自己地址的公钥
 	//sgj 1120doing
-	log.Info("exec PaySignTransProc() step 1,fromAddr is : %s, toamount is:%f,GatherLimit is:%f \n", fromAddr,toamount,ser.GatherLimit)
+	log.Info("exec PaySignTransProc() step 1,fromAddr is : %s, toamount is:%f,GatherLimit is:%f \n", fromAddr, toamount, ser.GatherLimit)
 
 	toAddr := gatherAddress
 	//toamount1 := cursettle * 100000000
 	//toamount1,_:= cursettle.Vol.Float64()
-	toamount1:= toamount
+	toamount1 := toamount
 	//1210trying
 
 	//toamount1 = 0.041
-	remainAddr := fromAddr	//cursettle.FromAddress
+	remainAddr := fromAddr //cursettle.FromAddress
 
 	m_getCurPrivKeuy, err := ser.GenscriptPubKeyFormAddr(fromAddr)
 	log.Info("fromAddr is : %s ,ToAddr is :%s,,it's  m_getCurPrivKeuy info is:%s \n", fromAddr, toAddr, m_getCurPrivKeuy)
 	if len(fromAddr) < 32 || len(fromAddr) > 34 {
 		log.Error("requset param fromAddr is :%s,it's len is :%d, format is err.Invoke is returned \n", fromAddr, len(fromAddr))
-		return nil, 0,proto.StatusInvalidArgument, nil
+		return nil, 0, proto.StatusInvalidArgument, nil
 	}
 
 	if len(toAddr) < 32 || len(toAddr) > 34 {
 		log.Error("requset param toAddr is :%s,it's len is :%d, format is err.Invoke is returned \n", toAddr, len(toAddr))
-		return nil, 0,proto.StatusInvalidArgument, nil
+		return nil, 0, proto.StatusInvalidArgument, nil
 	}
 	//0330 to addr set is: toAddr:
 	if len(remainAddr) < 32 || len(remainAddr) > 34 {
 		log.Error("requset param RemainAddr is :%s,it's len is :%d, format is err.Invoke is returned \n", remainAddr, len(remainAddr))
-		return nil, 0,proto.StatusInvalidArgument, nil
+		return nil, 0, proto.StatusInvalidArgument, nil
 	}
 	if toAddr == remainAddr {
 		log.Error("requset param toAddr same to the RemainAddr is :%s,opearte is forbidden! \n", remainAddr)
-		return nil, 0,proto.StatusInvalidArgument, nil
+		return nil, 0, proto.StatusInvalidArgument, nil
 
 	}
 	//1. 找出未花费的币（unspent output）：
 	//最后的找零地址为自身
 	//sgj 1207 add fro KTC:
-	addrUtxolist := make([]proto.CurKtcUtxoInfo,0,8)
-	curAddrLists := make([]string,0,3)
-	curAddrLists = append(curAddrLists,fromAddr)
+	addrUtxolist := make([]proto.CurKtcUtxoInfo, 0, 8)
+	curAddrLists := make([]string, 0, 3)
+	curAddrLists = append(curAddrLists, fromAddr)
 
-
-	getutxoinfo,utxonum,err := ktcrpc.KTCRPCClient.GetRPCTxUnSpentLimit(1,9999999,curAddrLists)	//"1Eq8xXAea47WPY5t8zUEYDKgcWB7cptZWB")
+	getutxoinfo, utxonum, err := ktcrpc.KTCRPCClient.GetRPCTxUnSpentLimit(1, 9999999, curAddrLists) //"1Eq8xXAea47WPY5t8zUEYDKgcWB7cptZWB")
 	if err != nil {
-		log.Error("from address :%s ,to address :%s ,exec GetRPCTxUnSpentLimit() failure! err is: %v \n", fromAddr, toAddr,err)
-		return nil, 0,status, err
+		log.Error("from address :%s ,to address :%s ,exec GetRPCTxUnSpentLimit() failure! err is: %v \n", fromAddr, toAddr, err)
+		return nil, 0, status, err
 	}
 
 	log.Info("exec GetTxUnSpentLimit(),addrUtxolist info is: %v ,exex GetAddressUtxo() finished! unxonum is :%d\n", getutxoinfo, utxonum)
 	//totalbalance is: %v ,getbalance
 	if utxonum == 0 {
 		log.Error("fromAddr %s ,exex GetTxUnSpentLimit() failue!,get addrUtxolist num is: %v。PaySignTransProc is break! \n", fromAddr, 0)
-		return nil, 0,status, err
+		return nil, 0, status, err
 
 	}
 
 	//11.20,请求比特币,未花费的排序过的balance,按ut.value倒排序：
-	selAmountIndex :=0
-	selectAmountVal:= getutxoinfo[0].Amount
-	for iseno,curitem := range getutxoinfo{
-		if curitem.Amount > selectAmountVal{
+	selAmountIndex := 0
+	selectAmountVal := getutxoinfo[0].Amount
+	for iseno, curitem := range getutxoinfo {
+		if curitem.Amount > selectAmountVal {
 			selectAmountVal = curitem.Amount
 			selAmountIndex = iseno
 		}
 	}
-	log.Info("exec GetAddrUTXO(),form addrUtxolist,selAmountIndex is :%d，getutxoinfo is:%v\n",selAmountIndex,getutxoinfo[selAmountIndex])
+	log.Info("exec GetAddrUTXO(),form addrUtxolist,selAmountIndex is :%d，getutxoinfo is:%v\n", selAmountIndex, getutxoinfo[selAmountIndex])
 
 	//sg 1210 watching:
 	//sgj 0116 skip the sleep
 	//time.Sleep(time.Second * 4)
 
-	addrUtxolist = append(addrUtxolist,getutxoinfo[selAmountIndex])
+	addrUtxolist = append(addrUtxolist, getutxoinfo[selAmountIndex])
 
-	log.Info("get selAmountIndex is:%d,real account info: addrUtxolist[0].TxidHex is:%s, vout is :%d,amount is :%f,", selAmountIndex,addrUtxolist[0].Txid, addrUtxolist[0].Vout, addrUtxolist[0].Amount)
+	log.Info("get selAmountIndex is:%d,real account info: addrUtxolist[0].TxidHex is:%s, vout is :%d,amount is :%f,", selAmountIndex, addrUtxolist[0].Txid, addrUtxolist[0].Vout, addrUtxolist[0].Amount)
 
 	getbalance := addrUtxolist[0].Amount
 	//sgj 1217,,to update ,为最大大一个utxo大切片,to gather for all utxoid
@@ -546,18 +545,18 @@ func (ser *KTCSignHandle) PaySignTransProc(fromAddr string,fromPrivKey string,to
 	//sgj testing fee:	0.0006
 	//有时高达4到8mBTC，现在的数值一般是0.2到1mBTC
 	/*
-	//curminamount := float64(toamount1) + 1000
-	curminamount := float64(toamount1) + curfee
-	if getbalance < curminamount {
-		//返回余额不足；
-		log.Error("real account vout getbalance is:%d, curminamount is :%v,", getbalance, curminamount)
-		//0507==temp from broadcast unspent info; real proc alonw :
+		//curminamount := float64(toamount1) + 1000
+		curminamount := float64(toamount1) + curfee
+		if getbalance < curminamount {
+			//返回余额不足；
+			log.Error("real account vout getbalance is:%d, curminamount is :%v,", getbalance, curminamount)
+			//0507==temp from broadcast unspent info; real proc alonw :
 
-		return nil, 0,proto.StatusLackBalance, nil
+			return nil, 0,proto.StatusLackBalance, nil
 
-	}
-	//sgj 0824 wathing
-	log.Info("step 1:=====In Watchcing-------------001")
+		}
+		//sgj 0824 wathing
+		log.Info("step 1:=====In Watchcing-------------001")
 	*/
 	//ing--using---curGatherAmount := getbalance - AmountFee
 	//1218checking
@@ -566,17 +565,17 @@ func (ser *KTCSignHandle) PaySignTransProc(fromAddr string,fromPrivKey string,to
 	var curGatherAmount float64
 	//curGatherAmount= FeeDecimal(curGatherAmount)
 	//succ1--->2curGatherAmount= 0.0013
-	curGatherAmount = getbalance - AmountFee - minKTCLimitLast//minKTCLimit
+	curGatherAmount = getbalance - AmountFee - minKTCLimitLast //minKTCLimit
 	curGatherAmount = FeeDecimal(curGatherAmount)
 
 	//1217checking
 	/*
-	if  curGatherAmount > 0.0003{
-		curGatherAmount -= 0.0003
-	}
-	to fix error：
-	ktcrpc.CreateTransaction(),getresinfo info is :&{ <nil> -3:Invalid amount 0},err is :<nil>
-	Why??
+		if  curGatherAmount > 0.0003{
+			curGatherAmount -= 0.0003
+		}
+		to fix error：
+		ktcrpc.CreateTransaction(),getresinfo info is :&{ <nil> -3:Invalid amount 0},err is :<nil>
+		Why??
 	*/
 	//1114 add,满足归集最大上限为止
 	if curGatherAmount > ser.GatherLimit {
@@ -584,25 +583,24 @@ func (ser *KTCSignHandle) PaySignTransProc(fromAddr string,fromPrivKey string,to
 	}
 	//toamount1 = curGatherAmount
 	//1217 check no 0 value
-	toamount1 = curGatherAmount// - 0.0003
-	var totalNeeds float64 = (minKTCLimit + AmountFee)	// * 100000000
+	toamount1 = curGatherAmount                        // - 0.0003
+	var totalNeeds float64 = (minKTCLimit + AmountFee) // * 100000000
 	/*
-	fromMount = fromMount * 100000000
+		fromMount = fromMount * 100000000
 	*/
 	//余额不够最小归集限额,停止此比交易
-	if  totalNeeds > getbalance {
-		log.Info("balance is too low ignore. KTC Trans is insufficient!,cur balance is %.8f,cursettle need is:%.8f,real toamount1 is:%.8f\n", getbalance,totalNeeds,toamount1)
+	if totalNeeds > getbalance {
+		log.Info("balance is too low ignore. KTC Trans is insufficient!,cur balance is %.8f,cursettle need is:%.8f,real toamount1 is:%.8f\n", getbalance, totalNeeds, toamount1)
 		/*
-		reqUpdateInfo.Withdraws[0].Status = proto.SETTLE_STATUS_FAILED
-		reqUpdateInfo.Withdraws[0].Error = "当前余额不够"
-		if isOk := self.WithdrawsUpdate(&reqUpdateInfo); isOk {
-			log.Error("WDCGatherTransProc.WDCTransProc() fail, exec compare balance failed!,curid is:%d,curbalance is:%.8f,totalNeeds amount is: %.8f,cur trans break!", iseno,fromMount,totalNeeds)
-		}
+			reqUpdateInfo.Withdraws[0].Status = proto.SETTLE_STATUS_FAILED
+			reqUpdateInfo.Withdraws[0].Error = "当前余额不够"
+			if isOk := self.WithdrawsUpdate(&reqUpdateInfo); isOk {
+				log.Error("WDCGatherTransProc.WDCTransProc() fail, exec compare balance failed!,curid is:%d,curbalance is:%.8f,totalNeeds amount is: %.8f,cur trans break!", iseno,fromMount,totalNeeds)
+			}
 		*/
-		return nil, 0,status, err
+		return nil, 0, status, err
 	}
-	log.Info("cur KTC Trans amount info: cur balance is %.8f,curGatherAmount is:%.8f, curFee is:%.8f,real toamount1 is:%.8f\n", getbalance,curGatherAmount,AmountFee,toamount1)
-
+	log.Info("cur KTC Trans amount info: cur balance is %.8f,curGatherAmount is:%.8f, curFee is:%.8f,real toamount1 is:%.8f\n", getbalance, curGatherAmount, AmountFee, toamount1)
 
 	//2. 选择币的使用切片,不需要,不管Account与address的关系;只负责接口的支付功能)
 	curinput := []btcjson.TransactionInput{}
@@ -627,8 +625,7 @@ func (ser *KTCSignHandle) PaySignTransProc(fromAddr string,fromPrivKey string,to
 	toamount3 := addrUtxolist[0].Amount - toamount1 - curfee
 	remainingAmount2 := toamount3
 	remainingAmount2 = FeeDecimal(remainingAmount2)
-	log.Info("cur watching1209------A03,getbalance is:%.8f,curGatherAmount is:%.8f,curfee is:%.8f, toAddr is :%s,toamount1 is:%.8f,toamount3 is:%.8f,remainingAmount2New is :%f,remainAddr is:%s", getbalance,curGatherAmount,curfee,toAddr,toamount1,toamount3,remainingAmount2,remainAddr)
-
+	log.Info("cur watching1209------A03,getbalance is:%.8f,curGatherAmount is:%.8f,curfee is:%.8f, toAddr is :%s,toamount1 is:%.8f,toamount3 is:%.8f,remainingAmount2New is :%f,remainAddr is:%s", getbalance, curGatherAmount, curfee, toAddr, toamount1, toamount3, remainingAmount2, remainAddr)
 
 	//sjg 1209 update:
 	var locktime int64
@@ -672,7 +669,7 @@ func (ser *KTCSignHandle) PaySignTransProc(fromAddr string,fromPrivKey string,to
 		Vout: perInput.Vout,
 		//sgj 1209,pubscript is last UTXO's Txid's pubscript
 		//0104,ScriptPubKey,由函数计算出
-		ScriptPubKey :addrUtxolist[0].ScriptPubKey,
+		ScriptPubKey: addrUtxolist[0].ScriptPubKey,
 	}
 	log.Info("step 1 ext info,req curTxIn info is :%v", curTxIn)
 	PriKeys := make([]string, 0)
@@ -684,7 +681,7 @@ func (ser *KTCSignHandle) PaySignTransProc(fromAddr string,fromPrivKey string,to
 	//没取到对应私钥：
 	if curPrikey == "" {
 		log.Info("exec GetAddrPrivkeyKTC() failue! fromAddr is:%s,err is: %v \n", fromAddr, err)
-		return nil, 0,proto.StatusAccountPrikeyNotExisted, err
+		return nil, 0, proto.StatusAccountPrikeyNotExisted, err
 	}
 	log.Info("to signRawTransaction(),cur fromAddr is:%s,it's curPrikey is: %s \n", fromAddr, curPrikey)
 	PriKeys = append(PriKeys, curPrikey)
@@ -705,7 +702,7 @@ func (ser *KTCSignHandle) PaySignTransProc(fromAddr string,fromPrivKey string,to
 	redeemScript := addrUtxolist[0].RedeemScript
 	curKTCRawTxInputs := []*KTCPreTx{}
 	curKTCTxIn := KTCPreTx{
-		Txid: addrUtxolist[0].Txid,
+		Txid:         addrUtxolist[0].Txid,
 		Vout:         uint32(addrUtxolist[0].Vout),
 		ScriptPubKey: string(preScriptPubKey),
 		//Amount:       addrUtxolist[0].Amount / 100000000,
@@ -739,6 +736,6 @@ func (ser *KTCSignHandle) PaySignTransProc(fromAddr string,fromPrivKey string,to
 		//return nil,err
 	}
 	log.Info("step 2，exec KTC's PRC signrawtransaction()==second succ!,req info return getKTCRawTx's Hex is:%s,err is :%v", getKTCRawTx.Hex, err)
-	return getKTCRawTx,toamount1, proto.StatusSuccess, err
+	return getKTCRawTx, toamount1, proto.StatusSuccess, err
 
 }
