@@ -63,6 +63,7 @@ type UnfreezeFundsStatus int
 const HActionSign = "EX-ActionSign"
 
 //sgj 1112 fix add:
+//const HActionAbitSign     = "Abit-ActionSign"
 const HActionAbitSign = "EX-ActionSign"
 
 //1217

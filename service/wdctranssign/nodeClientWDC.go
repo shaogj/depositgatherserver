@@ -7,15 +7,15 @@ package wdctranssign
 import (
 	"2019NNZXProj10/depositgatherserver/config"
 	"2019NNZXProj10/depositgatherserver/proto"
+	"backend/support/libraries/loggers"
 	"encoding/json"
-
 	//"bytes"
-	. "2019NNZXProj10/shaogj/utils"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	. "shaogj/utils"
 	"strconv"
 	"strings"
 
@@ -33,6 +33,9 @@ type WdcRpcClient struct {
 var WDCNodeUrl string = "http://192.168.1.138:19585"
 
 var WDCJavaSDKUrl = "http://192.168.1.190:8088/wallet/WalletUtility"
+
+//20200608add
+var GWGCTransUrl = "http://18.176.110.109:8090/wallet/TxUtility"
 
 func NewWdcRpcClient(nodeconf *config.WDCNodeConf) *WdcRpcClient {
 	curWdcRpcClient := &WdcRpcClient{
@@ -119,7 +122,7 @@ func (cur *WdcRpcClient) SendNonce(curpubkeyhash string) (curbalance float64, er
 }
 
 //1104 add,,WdcTxBlock
-func (cur *WdcRpcClient) GetTransactionHeight(curheight int) (getBlockTrans interface{}, err error, errmsg string) {
+func (cur *WdcRpcClient) GetTransactionHeightOld(curheight int) (getBlockTrans interface{}, err error, errmsg string) {
 	data := url.Values{}
 
 	//整型转换成字符串
@@ -171,6 +174,63 @@ func (cur *WdcRpcClient) GetTransactionHeight(curheight int) (getBlockTrans inte
 	}
 	log.Info("SendNonce()-----66,success,get Resp jsondata is:%v,nonceval is :%d,getResp.StatusCode", getResp, getResp.Data.(*[]proto.WdcTxBlock), getResp.StatusCode)
 	return getResp.Data.(*[]proto.WdcTxBlock), nil, ""
+}
+
+//20200120new Node v9.0,,WdcTxBlock
+func (cur *WdcRpcClient) GetTransactionHeight(curheight int) (getBlockTrans interface{}, err error, errmsg string) {
+	data := url.Values{}
+
+	//整型转换成字符串
+	curheightstr := strconv.Itoa(curheight)
+
+	data.Set("height", curheightstr)
+	UrlVerify := fmt.Sprintf("%s/%s", WDCNodeUrl, "getTransactionHeight")
+	client := &http.Client{}
+	r, _ := http.NewRequest("POST", UrlVerify, strings.NewReader(data.Encode())) // URL-encoded payload
+	r.Header.Add("Content-Type", "application/x-www-form-urlencoded;param=value")
+	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+
+	resp, err := client.Do(r)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err, ""
+	}
+	defer resp.Body.Close()
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		loggers.Error.Printf("Fatal error ", err.Error())
+		return nil, err, ""
+	}
+	loggers.Info.Printf("post send getTransactionHeight success-----66,curheight is:%d,get res is :%v", curheight, string(content))
+	//getResp :=&proto.NodeResponse{}
+
+	//sgj 0220updating
+	curWdcTxBlock := make([]proto.WdcTxBlock, 3)
+	//getResp.Data = &curWdcTxBlock
+
+	//err=json.Unmarshal(content,getResp)
+	//sgj 20200220doing: watching:,WDC Node 9.0ver
+	if string(content) == "[ ]" {
+		loggers.Info.Printf("post send success,,cur blockheight is :%d,get Node New WdcTxBlock info is:%s", curheight, string(content))
+		return nil, nil, "emptyBlock succ"
+
+	}
+	err = json.Unmarshal(content, &curWdcTxBlock)
+	//sgj 1105 watching:
+	//getWdcTxBlock1 :=getResp.Data.(*[]proto.WdcTxBlock)
+	if nil != err {
+		loggers.Error.Printf("resp=%s,url=%s,err=%v", string(content), UrlVerify, err.Error())
+		return nil, err, ""
+	}
+
+	//sgjj 0220 adding
+	getWdcTxBlock1 := &curWdcTxBlock
+
+	loggers.Info.Printf("post send success-----77,curheight is:%d,err is:%v,get getWdcTxBlock1 is :%v", curheight, err, getWdcTxBlock1)
+	loggers.Info.Printf("post send success---------8888,get blocktranslen is:%d", len(*getWdcTxBlock1))
+
+	//return getResp.Data.(*[]proto.WdcTxBlock),nil,""
+	return &curWdcTxBlock, nil, ""
 }
 
 //广播事务
@@ -361,6 +421,120 @@ func (cur *WdcRpcClient) GetPubkeyHashToAddress(pubkeyHash string) (pubHashstr s
 		return "", err
 	}
 	return curPubHashAddrStr, nil
+
+}
+
+//20200605add,Token WGC getbalance get method:
+//RequestResponse, http://47.74.183.249:19585/TokenBalance/?code=WGC&address=WX1KVcQTbsMuU5jpZSdBRXiKcbbawrGBo9h7
+
+func (cur *WdcRpcClient) GetWDCAddrTokenBalance(coinName string, address string) (curbalance float64, err error) {
+	resNodeRet := proto.NodeResponse{}
+
+	UrlVerify := fmt.Sprintf("%s/%s/?code=%s&address=%s", WDCNodeUrl, "TokenBalance", coinName, address)
+
+	strRes, statusCode, errorCode, err := cur.HtClient.RequestResponseJson(UrlVerify, nil, 5000, &resNodeRet)
+
+	if nil != err {
+		log.Error("ht.RequestResponseJsonJson  status=%d,error=%d.%v url=%s ", statusCode, errorCode, err, UrlVerify)
+		return 0, err
+	}
+	log.Info("WdcRpcClient.GetWDCAddrTokenBalance,get statusCode is :%s,res=%s", statusCode, strRes)
+	var curAddrBalance float64
+
+	if resNodeRet.StatusCode == proto.ErrorNodeRPCSuccess.Code {
+		curAddrBalance = resNodeRet.Data.(float64)
+		log.Info("WdcRpcClient. get GetWDCAddrTokenBalance succ,value is:%v", curAddrBalance)
+	} else {
+		log.Error("WdcRpcClient. get GetWDCAddrTokenBalance error!,value is:%v,statusCode is:%s", curAddrBalance, statusCode)
+		return 0, err
+	}
+	return curAddrBalance, nil
+
+}
+
+//20200603 add,获取区块数据新接口:	Get方式解析区块
+//RequestResponse，http://47.74.183.249:19585/block/2154049
+func (cur *WdcRpcClient) GetBlockFullData(curheight int) (getBlockTrans interface{}, err error, errmsg string) {
+
+	//sgj 0605 tmp testing
+	//0607
+	//return nil, nil, "test WGC trans skip succ"
+
+	resNodeRet := proto.BlockHeadWDCResponse{}
+	curWdcTxBlock := make([]proto.WdcTxBlockNew, 3)
+	resNodeRet.BlockBodyData = &curWdcTxBlock
+	var curBlockcontent string
+	UrlVerify := fmt.Sprintf("%s/%s/%d", WDCNodeUrl, "block", curheight)
+	log.Info("WdcRpcClient.cur Invoke RPC URL is:%v", UrlVerify)
+
+	strRes, statusCode, errorCode, err := cur.HtClient.RequestResponseJson(UrlVerify, nil, 5000, &resNodeRet)
+	if nil != err || statusCode != 200 {
+		log.Error("ht.RequestResponseJsonJson  status=%d,error=%d.%v url=%s ", statusCode, errorCode, err, UrlVerify)
+		return nil, nil, "emptyBlock succ"
+	}
+	log.Info("WdcRpcClient.GetBlockFullData,get statusCode is :%s,res=%s", statusCode, strRes)
+	curBlockcontent = string(strRes)
+	log.Info("WdcRpcClient. get GetBlockFullData succ,value is:%v", curheight)
+
+	//sgj 20200220doing: watching:,WDC Node 9.0ver
+	if string(curBlockcontent) == "[ ]" {
+		log.Info("post send success,,cur blockheight is :%d,get Node New WdcTxBlock info is:%s", curheight, string(curBlockcontent))
+		return nil, nil, "emptyBlock succ"
+
+	}
+
+	//sgjj 0220 adding
+	getWdcTxBlock1 := &curWdcTxBlock
+
+	log.Info("get blockdata finish!,curheight is:%d,err is:%v,get blocktranslen is:%d,getWdcTxBlock1 is :%v", curheight, err, len(*getWdcTxBlock1), getWdcTxBlock1)
+
+	return &curWdcTxBlock, nil, ""
+
+}
+
+//20200605 add,获取区块数据Token' sub data:	Get方式解析区块
+//RequestResponse，http://47.74.183.249:19585/block/2154049
+func (cur *WdcRpcClient) GetPayLoadTransaction(assetPayload string) (getPayloadData interface{}, err error, statusCode int) {
+	curPayload := proto.PayloadStrReq{}
+	curPayload.Payload = assetPayload
+	resSDKAccount := proto.JavaSDKResponse{}
+
+	//resTransData :=proto.AssetPayLoadTransaction{}
+	UrlVerify := fmt.Sprintf("%s/%s", GWGCTransUrl, "getAssetTransfer")
+	getResp := proto.BlockPayloadResponse{}
+
+	strRes, statusCode, errorCode, err := cur.HtClient.RequestJsonResponseJson(UrlVerify, 5000, &curPayload, &resSDKAccount)
+	if nil != err {
+		log.Error("ht.RequestResponseJsonJson  status=%d,error=%d.%v url=%s ", statusCode, errorCode, err, UrlVerify)
+		return &getResp, err, statusCode
+	}
+	log.Info("WdcRpcClient.GetPayLoadTransaction,get statusCode is :%s,res=%s", statusCode, strRes)
+	curPubStr := ""
+
+	//if statusCode == 200{
+	if resSDKAccount.StatusCode == "2000" {
+		//二次对node rpc' 内部封装的解析
+		txsecMessageStr := resSDKAccount.Message
+		log.Info("WdcRpcClient.GetPayLoadTransaction,get statusCode is :%s,message=%s,", statusCode, txsecMessageStr)
+
+		//sgj 0103 fix bug
+		if txsecMessageStr == "" {
+			log.Error("ht.GetPayLoadTransaction , getResp's Data =%v .it is emptystring!return is err!", txsecMessageStr)
+
+		} else {
+			err = json.Unmarshal([]byte(txsecMessageStr), &getResp)
+			if nil != err {
+				log.Error("resp=%s,url=%s,err=%v", string(txsecMessageStr), UrlVerify, err.Error())
+			} else {
+				log.Info("ht.GetPayLoadTransaction , getResp.From=%s,getResp.To=%s,valus is %d, ", getResp.From, getResp.To, getResp.Value)
+			}
+
+		}
+	} else {
+
+		log.Error("WdcRpcClient. get GetPayLoadTransaction error!,value is:%v,statusCode is:%s", curPubStr, statusCode)
+	}
+	return &getResp, nil, statusCode
 
 }
 

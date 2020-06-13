@@ -1,7 +1,6 @@
 package wdctranssign
 
 import (
-	auth "2019NNZXProj10/depositgatherserver/KeyStore"
 	"2019NNZXProj10/depositgatherserver/models"
 	"time"
 
@@ -9,14 +8,14 @@ import (
 	"fmt"
 
 	"github.com/mkideal/log"
-
 	//"strconv"
 
+	"2019NNZXProj10/depositgatherserver/KeyStore"
 	"2019NNZXProj10/depositgatherserver/config" // "strings"
 	"2019NNZXProj10/depositgatherserver/proto"
-	. "2019NNZXProj10/shaogj/utils"
 	"encoding/json"
 	"errors"
+	. "shaogj/utils"
 
 	"github.com/go-xorm/xorm"
 )
@@ -259,6 +258,68 @@ func (self *WDCTransHandle) ClientToTransferAccount(fromPubkeyStr, toPubkeyHashS
 	return txid, txHexStr, err, errmsg
 }
 
+//sgj 20200604 add
+//1.31构造签名的资产定义的转账的规则调用事务
+
+func (self *WDCTransHandle) CreateSignToDeployforRuleTransfer(fromPubkeyStr, toPubkeyHashStr string, txHash1 string, value float64, prikeyStr string, nonce int64) (gettxid string, gettxmesage string, err error, errmsg string) {
+	UrlVerify := fmt.Sprintf("%s/%s", self.WDCTransUrl, "CreateSignToDeployforRuleTransfer")
+	//http://1.119.203.18:8086/wallet/TxUtility/CreateSignToDeployforRuleTransfer
+
+	curDeployforRuleTransfer := proto.CreateSignToDeployforRuleTransferParams{}
+	curDeployforRuleTransfer.FromPubkeyStr = fromPubkeyStr
+	curDeployforRuleTransfer.TxHash1 = txHash1
+	curDeployforRuleTransfer.To = toPubkeyHashStr
+	curDeployforRuleTransfer.Value = value
+	curDeployforRuleTransfer.PrikeyStr = prikeyStr
+	curDeployforRuleTransfer.Nonce = nonce
+	curDeployforRuleTransfer.From = fromPubkeyStr
+
+	var txid, txHexStr string
+	resSDKAccount := proto.JavaSDKResponse{}
+
+	log.Info("transserver.CreateSignToDeployforRuleTransfer,watching---- cur input params is:%v", curDeployforRuleTransfer)
+
+	strRes, statusCode, errorCode, err := self.HtClient.RequestJsonResponseJson(UrlVerify, 5000, &curDeployforRuleTransfer, &resSDKAccount)
+	if nil != err {
+		log.Error("ht.RequestResponseJsonJson  statuscode111=%d,error=%d.%v url=%s ", statusCode, errorCode, err, UrlVerify)
+		return "", "", err, resSDKAccount.Message
+	}
+	if statusCode == 200 {
+		//二次对node rpc' 内部封装的解析
+		log.Info("transserver.CreateSignToDeployforRuleTransfer,get statusCode is :%s,res=%s,get cur txHexStr is:%d", statusCode, strRes, txHexStr)
+
+		txsecHexStrBef := resSDKAccount.Data.(string)
+		//sgj 0103 fix bug
+		if txsecHexStrBef == "" {
+			log.Error("ht.CreateSignToDeployforRuleTransfer , getResp's Data =%v .it is emptystring!return is err!", txsecHexStrBef)
+			errmsg = "调用接口构建当前交易返回info失败！"
+
+		} else {
+
+			getResp := &proto.NodeRPCResponse{}
+			err = json.Unmarshal([]byte(txsecHexStrBef), getResp)
+			if nil != err {
+				log.Error("resp=%s,url=%s,err=%v", string(txsecHexStrBef), UrlVerify, err.Error())
+			} else {
+				log.Info("ht.CreateSignToDeployforRuleTransfer , getResp=%v ", getResp)
+			}
+			txHexStr = getResp.Message
+			//sgj 0103 fix bug
+			if getResp.Data != nil {
+				txid = getResp.Data.(string)
+			}
+		}
+		//log.Info(",get cur txid is:%v,txAftMessage is :%s",txid, txHexStr)
+
+	} else if statusCode == proto.ErrorRequestWDCSDK.Code {
+		errmsg = proto.ErrorRequestWDCSDK.Desc
+
+	}
+	log.Info("transserver.CreateSignToDeployforRuleTransfer,get statusCode is :%s,txid=%s,get cur txHexStr is:%d", statusCode, txid, txHexStr)
+	return txid, txHexStr, err, errmsg
+
+}
+
 //(errinfo transproto.ErrorInfo,ival uint, retval []interface{}){
 func (self *WDCTransHandle) WDCTransProc(cursettle proto.Settle, from string, accountname string) (opsuccflag bool, tid string) {
 	var ret bool = false
@@ -266,7 +327,8 @@ func (self *WDCTransHandle) WDCTransProc(cursettle proto.Settle, from string, ac
 	log.Info("transfer %s => %s mount %s coin_type %s\n", from, cursettle.ToAddress, cursettle.Vol, cursettle.CoinCode)
 
 	//判断币种,如果不是WDC=>返回错误.
-	if cursettle.CoinCode != "WDC" {
+	//sgj 20200605add token support WGC
+	if !(cursettle.CoinCode == "WDC" || cursettle.CoinCode == "WGC") {
 		ret = false
 		return ret, ""
 	}
@@ -305,7 +367,14 @@ func (self *WDCTransHandle) WDCTransProc(cursettle proto.Settle, from string, ac
 	getAddressPriv := curaddrrec.PrivKey
 
 	//获取账户余额	getfromAddress,
-	fromMount, err, errmsg := self.WdcRpcClient.SendBalancePostFormNode(curaddrrec.PubKeyHash)
+	//sgj 20200605 add to support Token WGC
+	var fromMount float64
+	var errmsg string
+	if cursettle.CoinCode == "WGC" {
+		fromMount, err = self.WdcRpcClient.GetWDCAddrTokenBalance("WGC", getfromAddress)
+	} else {
+		fromMount, err, errmsg = self.WdcRpcClient.SendBalancePostFormNode(curaddrrec.PubKeyHash)
+	}
 	if err != nil {
 		log.Error("WDCTransProc.SendBalance() fail, get err=%v,errinfo :%s,cur fromAddress is: %v,getPubKeyHash is:%s", err, errmsg, getfromAddress, curaddrrec.PubKeyHash)
 	}
@@ -362,10 +431,23 @@ func (self *WDCTransHandle) WDCTransProc(cursettle proto.Settle, from string, ac
 	//sgj 1107add,签名完成状态不需要设置：SETTLE_STATUS_SIGNED
 	//reqUpdateInfo.Withdraws[0].Status = proto.SETTLE_STATUS_SIGNED
 	//if isOk := self.WithdrawsUpdate(&reqUpdateInfo); isOk {
-	txid, txHexStr, err, errmsg := self.ClientToTransferAccount(getAddressPub, getToPubHashStr, curAmount, getAddressPriv, int64(getNonce))
+	//sgj 20200605 add to support Token
+	//to add code,WGC 是固定的串：
+	var txid, txHexStr string
+	if cursettle.CoinCode == "WGC" {
+
+		txHashWGCHex := "160d6e8f1ae0d8b0b21d36042b4ecf35b67708e150bc1ad9355d6976313a25c0"
+		txid, txHexStr, err, errmsg = self.CreateSignToDeployforRuleTransfer(getAddressPub, getToPubHashStr, txHashWGCHex, curAmount, getAddressPriv, int64(getNonce))
+
+	} else if cursettle.CoinCode == "WDC" {
+		txid, txHexStr, err, errmsg = self.ClientToTransferAccount(getAddressPub, getToPubHashStr, curAmount, getAddressPriv, int64(getNonce))
+
+	}
 	if err != nil || errmsg != "" {
 		log.Error("WDCTransProc.ClientToTransferAccount() fail, get err=%v,cur errmsg = %v,cur trans break!", err, errmsg)
-		return false, ""
+		//sjg 0103 fix tixd nil,to update msg to settlecenter
+		//return false,""
+		curStatus = proto.SETTLE_STATUS_FAILED
 
 	} else {
 		log.Info("WDCTransProc.ClientToTransferAccount() succ, gettxid is:%s, txHexStr=%s,cur errmsg = %v", txid, txHexStr, errmsg)
@@ -383,6 +465,13 @@ func (self *WDCTransHandle) WDCTransProc(cursettle proto.Settle, from string, ac
 	} else {
 		log.Error("WDCTransProc.SendTransactionPostForm() fail!,errcode is:%d,res errmsg is:%v", errcode, errmsg)
 		curStatus = proto.SETTLE_STATUS_FAILED
+		//20020613add
+		reqUpdateInfo.Withdraws[0].RejectReason = errmsg
+		/*
+			"message" : "Not sufficient funds",
+  			"data" : null,
+  			"code" : 5000
+		*/
 	}
 	//1104，可把转账结构写入数据库
 	//err :=
