@@ -8,3 +8,6 @@ http://localhost:3311/remote/getnewaddress?cointype=CoinDSC
 }
 curl -d '{"cointype": "CoinDSC","accountNumber":4,"IsReturnList": 1}'  http://192.168.1.166:3377/remote/getnewaddress
 
+
+20200611add
+curl -d '{"cointype": "WGC","encryptPemTxt":"EncryptPemTxt2019WDC1114val","keyText":"UCt38sGmp"}' http://18.176.110.109:4466/remote/monitorwalletwdc
