@@ -219,7 +219,10 @@ func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 		GeneJsonResultFin(w, r, nil, sttErr.Code, sttErr.Desc)
 		return
 	}
-	if jReq.EncryptPemTxt != "EncryptPemTxt2019WDC1114val" {
+	//20200614add,,for WGCFee
+	if jReq.EncryptPemTxt == "EncryptPemTxt2019WDC1114val" || jReq.EncryptPemTxt == "EncryptPemTxt2020WGCFee1114val" {
+		//if jReq.EncryptPemTxt != "EncryptPemTxt2019WDC1114val"
+	}else{
 		GeneJsonResultFin(w, r, nil, 110098, "EncryptPemTxt is nocorrect!")
 		return
 	}
@@ -246,7 +249,18 @@ func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 			} else {
 				log.Info(" cur exec WithdrawsDepositGatherWDC() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
 			}
-		} else {
+		} else if "WGCFee" == jReq.CoinType{
+			//sgj 20200614 add
+			gatherAddrCount, bret = wdctranssign.WithdrawsDepositGatherWDCFee(0, 50, jReq.CoinType,jReq.FeeAmount,jReq.FeeThreshold)
+
+			if bret != true {
+				log.Error("cur exec WithdrawsDepositGatherWDCFee() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
+			} else {
+				log.Info(" cur exec WithdrawsDepositGatherWDCFee() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
+			}
+
+		}else{
+
 			GeneJsonResultFin(w, r, nil, 111096, "error  is cointype")
 		}
 		//sgj 0802 add

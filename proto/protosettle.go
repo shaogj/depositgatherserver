@@ -88,6 +88,10 @@ type DepositAddressGatherReq struct {
 	EncryptPemTxt string `json:"encryptPemTxt"` // 归集指令私钥密文
 	KeyText       string `json:"keyText"`       // 归集指令私钥秘钥
 	CoinType      string `json:"coinType"`
+	//20200614add for WGCFee
+	FeeAmount      float64 `json:"feeAmount"`		// 归集分发手续费指令，充值Fee的额度
+	FeeThreshold      float64 `json:"feeThreshold"`	// 归集分发手续费指令，充值Fee的限额
+
 }
 
 // protocol: 返回: 执行充值归集指令的结果

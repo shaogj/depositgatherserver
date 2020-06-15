@@ -424,6 +424,44 @@ func (cur *WdcRpcClient) GetPubkeyHashToAddress(pubkeyHash string) (pubHashstr s
 
 }
 
+
+//20200109PM add for verifyAddress
+func (cur *WdcRpcClient) CheckVerifyAddress(curAddr string) (VerifyRet int64,err error) {
+	accountAddress := proto.VerifyAddressReq{}
+	accountAddress.Address = curAddr
+	resSDKAccount := proto.JavaSDKResponse{    }
+	var curVerifyVal int64
+	var curVerifyValStr string
+	UrlVerify := fmt.Sprintf("%s/%s", WDCJavaSDKUrl, "verifyAddress")
+
+	strRes, statusCode, errorCode, err := cur.HtClient.RequestJsonResponseJson(UrlVerify, 5000, &accountAddress, &resSDKAccount)
+	if nil != err {
+		log.Error("ht.RequestResponseJsonJson  status=%d,error=%d.%v url=%s ", statusCode, errorCode, err, UrlVerify)
+		return -2,err
+	}
+	log.Info("WdcRpcClient.CheckVerifyAddress,get statusCode is :%s,res=%s",statusCode, strRes)
+	if statusCode == 200{
+		curVerifyValStr =resSDKAccount.Data.(string)
+		if curVerifyValStr == "-1" || curVerifyValStr == "-2"{
+			curVerifyVal = -1
+		}else{
+			tmpVal,_ := strconv.Atoi(curVerifyValStr)
+			curVerifyVal = int64(tmpVal)
+		}
+
+		log.Info("WdcRpcClient. get CheckVerifyAddress succ,curVerifyVal is:%v", curVerifyVal)
+	}else{
+		if statusCode == 500 {
+			errors.New(resSDKAccount.Message)
+		}
+		curVerifyVal = -3
+		log.Error("WdcRpcClient. get CheckVerifyAddress error!,value is:%v,statusCode is:%s", curVerifyVal,curVerifyVal)
+		return curVerifyVal,err
+	}
+	return curVerifyVal,nil
+
+}
+
 //20200605add,Token WGC getbalance get method:
 //RequestResponse, http://47.74.183.249:19585/TokenBalance/?code=WGC&address=WX1KVcQTbsMuU5jpZSdBRXiKcbbawrGBo9h7
 

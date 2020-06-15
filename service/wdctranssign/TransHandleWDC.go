@@ -190,6 +190,10 @@ type WDCTransHandle struct {
 	GatherLimit float64
 	//sgj 1114adding,总归集的地址数量
 	GatherAddrCount int
+	//20200614add:
+	TransWGCFeeAddrCount int
+
+
 }
 
 func (self *WDCTransHandle) Init(wdcTransUrl string, nodeconf *config.WDCNodeConf) {

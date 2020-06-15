@@ -47,6 +47,30 @@ func WithdrawsDepositGatherWDC(offset, limit uint, cointype string)(addressCount
 
 }
 
+//20200614add for Trans WGC Fee:
+func WithdrawsDepositGatherWDCFee(offset, limit uint, cointype string,feeAmount float64,feeThreshold float64)(addressCount int,bsucc bool){
+	var reqDepositInfo proto.DepositeAddresssReq
+
+	ht := CHttpClientEx{}
+	//sgj add
+	ht.Init()
+	ht.HeaderSet("Content-Type", "application/json;charset=utf-8")
+
+	//reqInfo.MaxVol = 0
+	reqDepositInfo.Limit = int(limit)
+	//reqDepositInfo.Status = transproto.SETTLE_STATUS_PASSED
+	reqDepositInfo.CoinCode = "WGC"	//cointype
+	reqDepositInfo.Nonce = time.Now().Unix()
+	reqDepositInfo.Offset = int(offset)
+	//20200611 update--GWDCTransHandle
+	opercount,bRet := GDepositHandle.DepositWGCGatterAddrFee(&reqDepositInfo,feeAmount,feeThreshold)
+
+	log.Info("DepositGatherWDCFee,handle succ!,reqDepositInfo is :%v,return is :%v", reqDepositInfo,bRet)
+	time.Sleep(time.Second * 2)
+	return opercount,bRet
+
+}
+
 //sgj 1113,,小于此值，不进行归集处理
 var minWDCLimit = 0.05
 
@@ -57,6 +81,8 @@ var threshold = 150
 //sgj 20200611add
 type DepositHandle struct {
 	WDCTransHandle
+	//sgj 0107 add from nonce add
+	nonce_addr map[string]int64
 }
 func (self *DepositHandle) QueryWDCDepositesAddr(reqQueryInfo *proto.DepositeAddresssReq) (Address []string, succflag bool) {
 	var signData string
@@ -212,6 +238,91 @@ func (self *DepositHandle) QueryDepositGroupConfig(group string) (getDepositConf
 	}
 }
 
+//20200614add TransWGCFeeAddrCount
+
+//开始分发WGC资金归集Fee的流程
+func (self *DepositHandle) DepositWGCGatterAddrFee(reqQueryInfo *proto.DepositeAddresssReq,setfeeAmount float64,feeThreshold float64) (opercount int,is bool) {
+
+	self.TransWGCFeeAddrCount = 0
+	//1205 fix add offset:
+	var TotalAddressList = make([]string,0)
+	reqQueryInfo.Offset = 0
+	//循环取出所用充值地址：
+	for {
+		curAddressList, bsucc := self.QueryWDCDepositesAddr(reqQueryInfo)
+		if bsucc == false {
+			log.Error("WithdrawsDeposites err! cur reqQueryInfo is:%v", reqQueryInfo)
+			break
+		}
+		if len(curAddressList) == 0 {
+			log.Info("WithdrawsDeposites finished! cur reqQueryInfo is:%v,get addrlist is 0", reqQueryInfo)
+			break
+		}
+		log.Info("QueryWDCDepositesAddr good! get len is :%d,curAddressList is:%v", len(curAddressList), curAddressList)
+		for _, getAddr := range curAddressList {
+			TotalAddressList = append(TotalAddressList, getAddr)
+		}
+		reqQueryInfo.Offset += len(curAddressList)
+	}
+	log.Info("WithdrawsDeposites Total finished! get WGC TotalAddressList len is :%d", len(TotalAddressList))
+
+	//从settlecenter测，获取配置的大账户归集限额
+	//20200611,update for WGC
+
+	//WDCGatterToAddress
+	//curGatterToAddress := config.GbConf.WDCGatterToAddress
+	curWDCTransferAddress :=config.GbConf.WDCTransferOutAddress
+
+	//default ,,1 WDC
+	var transFeeThreshold float64 =1.0
+	if feeThreshold >0 {
+		transFeeThreshold = feeThreshold
+	}
+	//PM,,tmp:
+	//transFeeThreshold = 10
+
+	feeAmount :=setfeeAmount	//1.0
+	if feeAmount ==0{
+		feeAmount = 1.0
+	}
+	log.Info("WithdrawsDeposites res succ! to gather limit is:%f,get len(TotalAddressList) is:%d,TotalAddressList is:%v", transFeeThreshold,len(TotalAddressList),TotalAddressList)
+
+	//sgj 20200612 add 地址校验，，for verifyAddress
+	vertifyVal,err :=self.WdcRpcClient.CheckVerifyAddress(curWDCTransferAddress)
+	if err !=nil || vertifyVal < 0 {
+		log.Error("DepositesAddrGatter.CheckVerifyAddress() fail, get err=%v,errinfo :%s,cur toGatherAddr is: %v,get vertifyVal is:%d", err,"",curWDCTransferAddress,vertifyVal)
+		//返回失败，参数错误!
+
+		return 0,false
+	}
+	//20200611 add for WGC handle
+	//WDC提现的大账户地址
+
+	for ino, curToFeeAddrItem := range TotalAddressList {
+		if reqQueryInfo.CoinCode == "WGC" {
+				fromWGCMount, err := self.WdcRpcClient.GetWDCAddrTokenBalance("WGC", curToFeeAddrItem)
+				if err != nil {
+					log.Error("WGC.GetWDCAddrTokenBalance() fail, get err=%v,cur curToFeeAddrItem is: %v", err, curToFeeAddrItem)
+					continue
+				}
+				//WGC 's balance 无余额，不需归集，不打WDC手续费：
+				if fromWGCMount <0{
+					log.Info("WGC.GetWDCAddrTokenBalance() get addrinfo :%s,cur curToFeeAddrItem is: %v,curWGCMount is:%v.no need trans fee.to skip", curToFeeAddrItem, fromWGCMount)
+					continue
+				}
+				log.Info("WGC.GetWDCAddrTokenBalance(),cur curToFeeAddrItem is: %v,curWGCMount is:%v.can be Gather WGC.so need to trans fee", curToFeeAddrItem, fromWGCMount)
+
+				_,gettxid := self.TransWDCFeeProc(int64(ino),"WGC",curWDCTransferAddress,curToFeeAddrItem,feeAmount,transFeeThreshold)
+				log.Info("cur TransWDCFeeProc() finished, curWDCTransferOutAddress is %s, curToFeeAddrItem is:%s,gettxid is:%s",curWDCTransferAddress,curToFeeAddrItem,gettxid);
+			//self.GatherLimit
+		}
+	}
+
+	return self.TransWGCFeeAddrCount,true
+
+
+}
+
 //开始资金归集的流程
 func (self *DepositHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddresssReq) (opercount int,is bool) {
 
@@ -307,7 +418,14 @@ func (self *DepositHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddre
 
 	log.Info("WithdrawsDeposites res succ! to gather limit is:%f,get len(TotalAddressList) is:%d,TotalAddressList is:%v", limit,len(TotalAddressList),TotalAddressList)
 
+	//sgj 20200612 add 地址校验，，for verifyAddress
+	vertifyVal,err :=self.WdcRpcClient.CheckVerifyAddress(curGatterToAddress)
+	if err !=nil || vertifyVal < 0 {
+		log.Error("DepositesAddrGatter.CheckVerifyAddress() fail, get err=%v,errinfo :%s,cur toGatherAddr is: %v,get vertifyVal is:%d", err,errmsg,curGatterToAddress,vertifyVal)
+		//返回失败，参数错误!
 
+		return 0,false
+	}
 	//20200611 add for WGC handle
 	for ino, curAddrItem := range TotalAddressList {
 		if reqQueryInfo.CoinCode == "WDC" {
@@ -428,6 +546,15 @@ func(self *DepositHandle) WDCGatherTransProc(iseno int64,fromaddress string, toG
 	}
 	getNonce := int64(curNonce)
 
+	//sgj 20200109 add 地址校验，，for verifyAddress
+	//add Part2,from addr to verity:
+	vertifyVal,err :=self.WdcRpcClient.CheckVerifyAddress(fromaddress)
+	if err !=nil || vertifyVal < 0 {
+		log.Error("WDCGatherTransProc.CheckVerifyAddress() fail, get err=%v,errinfo :%s,cur fromaddress is: %v,get vertifyVal is:%d", err,errmsg,fromaddress,vertifyVal)
+		//返回失败，参数错误!
+
+		return false,""
+	}
 	getToPubHashStr,err :=self.WdcRpcClient.GetAddressPubHash(toGatherAddr)
 	if err !=nil{
 		log.Error("WDCTransProc.GetAddressPubHash() fail, get err=%v,cur toGatherAddr = %v,cur trans break!", err,toGatherAddr)
@@ -469,6 +596,164 @@ func(self *DepositHandle) WDCGatherTransProc(iseno int64,fromaddress string, toG
 	return ret, txid
 }
 
+//20200615add for WDC Transfer WGC Addr to fee:
+func (self *DepositHandle) TransWDCFeeProc(iseno int64,coinCode string,fromAddress string,toAddress string, feeAmount float64,transFeeThreshold float64) (opsuccflag bool, tid string) {
+	var ret bool = false
+	//默认限制1个WDC时，不进行打fee交易
+	if transFeeThreshold ==0 {
+		transFeeThreshold = 1
+	}
+	//var curStatus proto.SETTLE_STATUS
+	log.Info("transfer %s => %s mount %f coin_type %s\n", fromAddress, toAddress, feeAmount, coinCode)
+
+	//判断币种,如果不是WDC=>返回错误.
+	//sgj 20200605add token support WGC
+	if coinCode != "WGC" {
+		return ret, ""
+	}
+	var getfromAddress string
+	//reqUpdateInfo := proto.WithdrawsUpdateReq{}
+	//reqUpdateInfo.Withdraws = make([]proto.Settle, 1)
+	getfromAddress = fromAddress
+	if getfromAddress == "" {
+		return ret, ""
+
+	}
+	//0614add,判断当前地址的WDC余额
+	//transFeeThreshold
+	curaddrrecto, err := GWdcDataStore.GetWDCAddressRec(toAddress)
+	if err != nil {
+		log.Error("GetWDCAddressRec(),get rows for toaddress record failed!,WDCTransProc() exec to return.curaddress =%s", getfromAddress)
+		return false, ""
+	}
+	toAmount, err, errmsg := self.WdcRpcClient.SendBalancePostFormNode(curaddrrecto.PubKeyHash)
+	if err != nil {
+		log.Error("TransWDCFeeProc.SendBalance() fail, get err=%v,errinfo :%s,cur toAddress is: %v,getPubKeyHash is:%s", err, errmsg, toAddress, curaddrrecto.PubKeyHash)
+	}
+	log.Info("toAddress(%s),GetBalance is %.8f\n", toAddress, toAmount)
+	if toAmount > transFeeThreshold {
+		//当前余额够"
+		log.Info("cur WDCFee Trans is enough! no need to transfer,cur balance is %.8f,cursettle need is:%.8f\n", toAmount, transFeeThreshold)
+		return false, ""
+
+	}
+	//0614 end
+
+	//to do:从db里，取得address对应的pubkey,privkey
+	curaddrrec, err := GWdcDataStore.GetWDCAddressRec(getfromAddress)
+	if err != nil {
+		log.Error("GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curaddress =%s", getfromAddress)
+		return false, ""
+	}
+	getAddressPub := curaddrrec.PubKey
+	getAddressPriv := curaddrrec.PrivKey
+
+
+	//获取账户余额	getfromAddress,
+
+	fromMount, err, errmsg := self.WdcRpcClient.SendBalancePostFormNode(curaddrrec.PubKeyHash)
+	if err != nil {
+		log.Error("TransWDCFeeProc.SendBalance() fail, get err=%v,errinfo :%s,cur fromAddress is: %v,getPubKeyHash is:%s", err, errmsg, getfromAddress, curaddrrec.PubKeyHash)
+	}
+	log.Info("fromAddress(%s),GetBalance is %.8f\n", getfromAddress, fromMount)
+	curAmount:= feeAmount
+
+	var totalNeeds float64 = curAmount * 100000000
+
+	//余额不够,通知交易系统失败
+	if totalNeeds  > fromMount {
+		log.Error("cur WDC Trans is insufficient!,cur balance is %.8f,cursettle need is:%.8f\n", fromMount, totalNeeds)
+
+		//reqUpdateInfo.Withdraws[0].Error = "当前余额不够"
+
+		return false, ""
+	}
+	log.Info("cur WDC Trans amount info: cur balance is %f,cursettle need is:%.8f\n", fromMount, totalNeeds)
+
+	//获取账户Nonce,var getNonce int64
+	time.Sleep(time.Second * 2)
+	curNonce, err, errmsg := self.WdcRpcClient.SendNonce(curaddrrec.PubKeyHash)
+	if err != nil {
+		log.Error("TransWDCFeeProc.SendNonce() fail, get err=%v,errinfo :%s,cur fromAddress is: %v,getPubKeyHash is:%s", err, errmsg, getfromAddress, curaddrrec.PubKeyHash)
+	}
+	getNonce := int64(curNonce)
+
+	//sgj 0107 add for avoid same nonce
+	var curnonce_saving int64 = 0
+	if curnonce, ok := self.nonce_addr[getfromAddress]; ok {
+		curnonce_saving = curnonce
+		log.Info("TransWDCFeeProc， cur address is:%s,find map nonce val is:%d", getfromAddress, curnonce)
+	} else {
+		self.nonce_addr[getfromAddress] = getNonce
+		log.Info("TransWDCFeeProc， cur address is:%s,find map no nonce val, to set map nonce val is:%d", getfromAddress, getNonce+1)
+	}
+
+	//可能存在并发时，取得的接口nonce为相同值;取较大的nonce；
+	if curnonce_saving > getNonce {
+		getNonce = curnonce_saving
+	}
+	self.nonce_addr[getfromAddress] = getNonce + 1
+	log.Info("TransWDCFeeProc， cur address is:%s, to using nonce value is:%d", getfromAddress, getNonce)
+
+	//sgj 0107 end
+
+	//sgj 20200109 add 地址校验，，for verifyAddress
+	//add Part2,from addr to verity:
+	vertifyVal2,err :=self.WdcRpcClient.CheckVerifyAddress(toAddress)
+	if err !=nil || vertifyVal2 < 0 {
+		log.Error("TransWDCFeeProc.CheckVerifyAddress() fail, get err=%v,errinfo :%s,cur toAddress is: %v,get vertifyVal is:%d", err,errmsg,toAddress,vertifyVal2)
+		//返回失败，参数错误!
+
+		return false,""
+	}
+	getToPubHashStr, err := self.WdcRpcClient.GetAddressPubHash(toAddress)
+	if err != nil {
+		log.Error("TransWDCFeeProc.GetAddressPubHash() fail, get err=%v,cur toAddress = %v,cur trans break!", err, toAddress)
+
+		return false, ""
+	} else {
+		log.Info("TransWDCFeeProc.GetAddressPubHash() succ, get toAddress is:%s,getToPubHashStr is:%s", toAddress, getToPubHashStr)
+	}
+	//开始转账类型交易.
+	//获取地址的私钥，调用rpc接口，进行转账：
+	//sgj 20200605 add to support Token
+	//to add code,WGC 是固定的串：
+	txid, txHexStr, err, errmsg := self.ClientToTransferAccount(getAddressPub, getToPubHashStr, curAmount, getAddressPriv, int64(getNonce))
+	if err != nil || errmsg != "" {
+		log.Error("TransWDCFeeProc.ClientToTransferAccount() fail, get err=%v,cur errmsg = %v,cur trans break!", err, errmsg)
+		//sjg 0103 fix tixd nil,to update msg to settlecenter
+		//return false,""
+		//curStatus = proto.SETTLE_STATUS_FAILED
+
+	} else {
+		log.Info("TransWDCFeeProc.ClientToTransferAccount() succ, gettxid is:%s, txHexStr=%s,cur errmsg = %v", txid, txHexStr, errmsg)
+
+	}
+
+	//开始广播交易：
+	resdata, err, errcode, errmsg := self.WdcRpcClient.SendTransactionPostForm(txHexStr)
+	if errcode == proto.ErrorNodeRPCSuccess.Code {
+		//resdata.(),txid,good!
+		log.Info("TransWDCFeeProc.SendTransactionPostForm() succ!,txid is:%s,getcur resdata is:%v", txid, resdata)
+		//转账后通知交易系统,状态值5
+
+	} else {
+		log.Error("TransWDCFeeProc.SendTransactionPostForm() fail!,errcode is:%d,res errmsg is:%v", errcode, errmsg)
+		//curStatus = proto.SETTLE_STATUS_FAILED
+		//20020613add
+		/*
+			"message" : "Not sufficient funds",
+  			"data" : null,
+  			"code" : 5000
+		*/
+	}
+	//1104，可把转账结构写入数据库
+	GWdcDataStore.SaveTranRecord(coinCode, getfromAddress, toAddress, iseno, txid, curAmount, "curTransWDCFee", errcode, errmsg, "")
+	self.TransWGCFeeAddrCount +=1
+
+	return ret, "txid"
+}
+
 //20200611add for WGC
 func(self *DepositHandle) WGCGatherTransProc(iseno int64,fromaddress string, toGatherAddr string) (opsuccflag bool, tid string) {
 	var ret bool = false
@@ -496,8 +781,16 @@ func(self *DepositHandle) WGCGatherTransProc(iseno int64,fromaddress string, toG
 	if toGatherAddr == ""{
 		toGatherAddr = "1KVcQTbsMuU5jpZSdBRXiKcbbawrGBo9h7"
 	}
-	//ggex.dev.test:1HFCUeNHcL6Drf4TPwBLG6RgYVe9o41BVj
+	//20200611add:
+	//sgj 20200109 add 地址校验，，for verifyAddress
+	//add Part2,from addr to verity:
+	vertifyVal2,err :=self.WdcRpcClient.CheckVerifyAddress(fromaddress)
+	if err !=nil || vertifyVal2 < 0 {
+		log.Error("WGCGatherTransProc.CheckVerifyAddress() fail, get err=%v,cur fromaddress is: %v,get vertifyVal is:%d", err,fromaddress,vertifyVal2)
+		//返回失败，参数错误!
 
+		return false,""
+	}
 	curaddrrec,err := GWdcDataStore.GetWDCAddressRec(getfromAddress)
 	if err != nil{
 		log.Error("GetWGCAddressRec(),get rows for fromaddress record failed!,WGCTransProc() exec to return.curaddress =%s",getfromAddress)
