@@ -285,9 +285,15 @@ func (self *DepositHandle) DepositWGCGatterAddrFee(reqQueryInfo *proto.DepositeA
 	if feeAmount ==0{
 		feeAmount = 1.0
 	}
-	log.Info("WithdrawsDeposites res succ! to gather limit is:%f,get len(TotalAddressList) is:%d,TotalAddressList is:%v", transFeeThreshold,len(TotalAddressList),TotalAddressList)
+	log.Info("WithdrawsDeposites res succ! curWDCTransferAddress is :%s,to gather limit is:%f,get len(TotalAddressList) is:%d,TotalAddressList is:%v", curWDCTransferAddress,transFeeThreshold,len(TotalAddressList),TotalAddressList)
 
 	//sgj 20200612 add 地址校验，，for verifyAddress
+	//大新账号地址不能为空
+	if curWDCTransferAddress == ""{
+		log.Error("cur curWDCTransferAddress from cfg is: ",curWDCTransferAddress)
+		return 0,false
+
+	}
 	vertifyVal,err :=self.WdcRpcClient.CheckVerifyAddress(curWDCTransferAddress)
 	if err !=nil || vertifyVal < 0 {
 		log.Error("DepositesAddrGatter.CheckVerifyAddress() fail, get err=%v,errinfo :%s,cur toGatherAddr is: %v,get vertifyVal is:%d", err,"",curWDCTransferAddress,vertifyVal)
@@ -416,7 +422,7 @@ func (self *DepositHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddre
 		return 0,false;
 	}
 
-	log.Info("WithdrawsDeposites res succ! to gather limit is:%f,get len(TotalAddressList) is:%d,TotalAddressList is:%v", limit,len(TotalAddressList),TotalAddressList)
+	log.Info("WithdrawsDeposites res succ! curGatterToAddress is :%s,to gather limit is:%f,get len(TotalAddressList) is:%d,TotalAddressList is:%v", curGatterToAddress,limit,len(TotalAddressList),TotalAddressList)
 
 	//sgj 20200612 add 地址校验，，for verifyAddress
 	vertifyVal,err :=self.WdcRpcClient.CheckVerifyAddress(curGatterToAddress)
@@ -426,6 +432,7 @@ func (self *DepositHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddre
 
 		return 0,false
 	}
+	log.Info("DepositesAddrGatter.CheckVerifyAddress() succ,cur toGatherAddr is: %v,get vertifyVal is:%d",curGatterToAddress,vertifyVal)
 	//20200611 add for WGC handle
 	for ino, curAddrItem := range TotalAddressList {
 		if reqQueryInfo.CoinCode == "WDC" {

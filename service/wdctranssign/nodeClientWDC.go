@@ -433,6 +433,8 @@ func (cur *WdcRpcClient) CheckVerifyAddress(curAddr string) (VerifyRet int64,err
 	var curVerifyVal int64
 	var curVerifyValStr string
 	UrlVerify := fmt.Sprintf("%s/%s", WDCJavaSDKUrl, "verifyAddress")
+	//add for test
+	log.Info("WdcRpcClient.CheckVerifyAddress,cur UrlVerify is ---to check :%s", UrlVerify)
 
 	strRes, statusCode, errorCode, err := cur.HtClient.RequestJsonResponseJson(UrlVerify, 5000, &accountAddress, &resSDKAccount)
 	if nil != err {
