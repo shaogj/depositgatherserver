@@ -7,7 +7,6 @@ package wdctranssign
 import (
 	"2019NNZXProj10/depositgatherserver/config"
 	"2019NNZXProj10/depositgatherserver/proto"
-	"backend/support/libraries/loggers"
 	"encoding/json"
 	//"bytes"
 	"errors"
@@ -174,63 +173,6 @@ func (cur *WdcRpcClient) GetTransactionHeightOld(curheight int) (getBlockTrans i
 	}
 	log.Info("SendNonce()-----66,success,get Resp jsondata is:%v,nonceval is :%d,getResp.StatusCode", getResp, getResp.Data.(*[]proto.WdcTxBlock), getResp.StatusCode)
 	return getResp.Data.(*[]proto.WdcTxBlock), nil, ""
-}
-
-//20200120new Node v9.0,,WdcTxBlock
-func (cur *WdcRpcClient) GetTransactionHeight(curheight int) (getBlockTrans interface{}, err error, errmsg string) {
-	data := url.Values{}
-
-	//整型转换成字符串
-	curheightstr := strconv.Itoa(curheight)
-
-	data.Set("height", curheightstr)
-	UrlVerify := fmt.Sprintf("%s/%s", WDCNodeUrl, "getTransactionHeight")
-	client := &http.Client{}
-	r, _ := http.NewRequest("POST", UrlVerify, strings.NewReader(data.Encode())) // URL-encoded payload
-	r.Header.Add("Content-Type", "application/x-www-form-urlencoded;param=value")
-	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
-
-	resp, err := client.Do(r)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil, err, ""
-	}
-	defer resp.Body.Close()
-	content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		loggers.Error.Printf("Fatal error ", err.Error())
-		return nil, err, ""
-	}
-	loggers.Info.Printf("post send getTransactionHeight success-----66,curheight is:%d,get res is :%v", curheight, string(content))
-	//getResp :=&proto.NodeResponse{}
-
-	//sgj 0220updating
-	curWdcTxBlock := make([]proto.WdcTxBlock, 3)
-	//getResp.Data = &curWdcTxBlock
-
-	//err=json.Unmarshal(content,getResp)
-	//sgj 20200220doing: watching:,WDC Node 9.0ver
-	if string(content) == "[ ]" {
-		loggers.Info.Printf("post send success,,cur blockheight is :%d,get Node New WdcTxBlock info is:%s", curheight, string(content))
-		return nil, nil, "emptyBlock succ"
-
-	}
-	err = json.Unmarshal(content, &curWdcTxBlock)
-	//sgj 1105 watching:
-	//getWdcTxBlock1 :=getResp.Data.(*[]proto.WdcTxBlock)
-	if nil != err {
-		loggers.Error.Printf("resp=%s,url=%s,err=%v", string(content), UrlVerify, err.Error())
-		return nil, err, ""
-	}
-
-	//sgjj 0220 adding
-	getWdcTxBlock1 := &curWdcTxBlock
-
-	loggers.Info.Printf("post send success-----77,curheight is:%d,err is:%v,get getWdcTxBlock1 is :%v", curheight, err, getWdcTxBlock1)
-	loggers.Info.Printf("post send success---------8888,get blocktranslen is:%d", len(*getWdcTxBlock1))
-
-	//return getResp.Data.(*[]proto.WdcTxBlock),nil,""
-	return &curWdcTxBlock, nil, ""
 }
 
 //广播事务
