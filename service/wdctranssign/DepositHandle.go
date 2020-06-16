@@ -47,6 +47,39 @@ func WithdrawsDepositGatherWDC(offset, limit uint, cointype string)(addressCount
 
 }
 
+//20200616add forAll WDCWGCAddr
+
+func WithdrawsDepositGatherWGCWDCAddrAll(offset, limit uint, cointype string)(addressCount int,bsucc bool){
+	var reqDepositInfo proto.DepositeAddresssReq
+
+	ht := CHttpClientEx{}
+	//sgj add
+	ht.Init()
+	ht.HeaderSet("Content-Type", "application/json;charset=utf-8")
+
+	//reqInfo.MaxVol = 0
+	reqDepositInfo.Limit = int(limit)
+	//reqDepositInfo.Status = transproto.SETTLE_STATUS_PASSED
+	//Part 1: Gather WGC amount
+	reqDepositInfo.CoinCode = "WGC"	//cointype
+	reqDepositInfo.Nonce = time.Now().Unix()
+	reqDepositInfo.Offset = int(offset)
+	log.Info("WithdrawsDepositGatherWGCWDCAddrAll,cur to handle Part1, all WGC,reqDepositInfo is :%v", reqDepositInfo)
+
+	opercount,bRet := GDepositHandle.DepositesAddrGatterWGCWDCAddrAll(&reqDepositInfo)
+	//Part 2: Gather WDC amount
+
+	reqDepositInfo.CoinCode = "WDC"	//cointype
+	GDepositHandle.TotalAddressListWGCWDC = make([]string,0)
+	log.Info("WithdrawsDepositGatherWGCWDCAddrAll,cur to handle Part2, all WDC,reqDepositInfo is :%v", reqDepositInfo)
+	opercount,bRet = GDepositHandle.DepositesAddrGatterWGCWDCAddrAll(&reqDepositInfo)
+
+	log.Info("WithdrawsDepositGatherWGCWDCAddrAll,handle succ!,reqDepositInfo is :%v,return is :%v", reqDepositInfo,bRet)
+	time.Sleep(time.Second * 2)
+	return opercount,bRet
+
+}
+
 //20200614add for Trans WGC Fee:
 func WithdrawsDepositGatherWDCFee(offset, limit uint, cointype string,feeAmount float64,feeThreshold float64)(addressCount int,bsucc bool){
 	var reqDepositInfo proto.DepositeAddresssReq
@@ -83,6 +116,8 @@ type DepositHandle struct {
 	WDCTransHandle
 	//sgj 0107 add from nonce add
 	nonce_addr map[string]int64
+	//20200616 add
+	TotalAddressListWGCWDC []string
 }
 //20200606add,for map
 func (self *DepositHandle) InitData(){
@@ -139,7 +174,7 @@ func (self *DepositHandle) QueryWDCDepositesAddr(reqQueryInfo *proto.DepositeAdd
 		if resDepositQuerySign.Msg== "Success" {
 
 			log.Info("QueryWDCDepositesAddr good!,get Msg' len(strRes) is:%d,resDepositQuerySign is:%v", len(strRes), resDepositQuerySign)
-			log.Info("QueryWDCDepositesAddr info is:%v", transInfo)
+			log.Info("QueryWDCDepositesAddr info: Addresss num is:%d,DepositeAddresssResp info is:%v",len(transInfo.Addresss), transInfo)
 
 			getAddress = transInfo.Addresss
 			return getAddress,true
@@ -264,7 +299,7 @@ func (self *DepositHandle) DepositWGCGatterAddrFee(reqQueryInfo *proto.DepositeA
 			log.Info("WithdrawsDeposites finished! cur reqQueryInfo is:%v,get addrlist is 0", reqQueryInfo)
 			break
 		}
-		log.Info("QueryWDCDepositesAddr good! get len is :%d,curAddressList is:%v", len(curAddressList), curAddressList)
+		//log.Info("QueryWDCDepositesAddr good! get len is :%d,curAddressList is:%v", len(curAddressList), curAddressList)
 		for _, getAddr := range curAddressList {
 			TotalAddressList = append(TotalAddressList, getAddr)
 		}
@@ -441,6 +476,189 @@ func (self *DepositHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddre
 
 	log.Info("WithdrawsDeposites res succ! curGatterToAddress is :%s,to gather limit is:%f,get len(TotalAddressList) is:%d,TotalAddressList is:%v", curGatterToAddress,limit,len(TotalAddressList),TotalAddressList)
 
+	//20200611 add for WGC handle
+	for ino, curAddrItem := range TotalAddressList {
+		if reqQueryInfo.CoinCode == "WDC" {
+			_,gettxid := self.WDCGatherTransProc(int64(ino),curAddrItem,curGatterToAddress)
+			log.Info("cur WDCGatherTransProc() finished, curAddrItem is %s, curGatterToAddress is:%s,gettxid is:%s,the rest wdc GatherLimit is :%f",curAddrItem,curGatterToAddress,gettxid,self.GatherLimit);
+			//var hash = await _omnisend(addrList[i], balance, fee);
+			if (self.GatherLimit <= 0 ){
+				break;
+			}
+		}else{
+			_,gettxid := self.WGCGatherTransProc(int64(ino),curAddrItem,curGatterToAddress)
+			log.Info("cur WGCGatherTransProc() finished, curAddrItem is %s, curGatterToAddress is:%s,gettxid is:%s,the rest wdc GatherLimit is :%f",curAddrItem,curGatterToAddress,gettxid,self.GatherLimit);
+			if (self.GatherLimit <= 0 ){
+				break;
+			}
+
+		}
+
+	}
+	return self.GatherAddrCount,true
+
+
+}
+
+//开始WGC，WDC合并地址资金归集的流程
+func (self *DepositHandle) DepositesAddrGatterWGCWDCAddrAll(reqQueryInfo *proto.DepositeAddresssReq) (opercount int,is bool) {
+
+
+	var threshold float64 = 22;
+	//fix 初始化count
+	self.GatherAddrCount = 0
+	var TotalAddressList = make([]string,0)
+	reqQueryInfo.Offset = 0
+	//20200616add for All WDC,WGCAddr:
+	self.TotalAddressListWGCWDC = make([]string,0)
+	//Part1 Addr is WGC
+	//reqQueryInfo.CoinCode = "WGC"
+	//循环取出所用充值地址：
+	log.Info("exec DepositesAddrGatterWGCWDCAddrAll,get CoinCode :%s,begin to gather curAddressList Part1", reqQueryInfo.CoinCode)
+	for {
+		//end 1205
+		curAddressList, bsucc := self.QueryWDCDepositesAddr(reqQueryInfo)
+		if bsucc == false {
+			log.Error("WithdrawsDeposites err! cur reqQueryInfo is:%v", reqQueryInfo)
+			//1205:
+			break
+		}
+		if len(curAddressList) == 0 {
+			log.Info("WithdrawsDeposites finished! cur reqQueryInfo is:%v,get addrlist is 0", reqQueryInfo)
+			//1205:
+			break
+		}
+		//log.Info("QueryWDCDepositesAddr good! get len is :%d,curAddressList is:%v", len(curAddressList), curAddressList)
+		for _, getAddr := range curAddressList {
+			TotalAddressList = append(TotalAddressList, getAddr)
+		}
+		reqQueryInfo.Offset += len(curAddressList)
+	}
+	//20200616 add
+	self.TotalAddressListWGCWDC = TotalAddressList
+
+	log.Info("DepositesAddrGatterWGCWDCAddrAll,get CoinCode :%s :Total finished! get TotalAddressListWGCWDC len is :%d", reqQueryInfo.CoinCode,len(self.TotalAddressListWGCWDC))
+	log.Info("exec DepositesAddrGatterWGCWDCAddrAll,get CoinCode :%s,begin to gather curAddressList Part2", reqQueryInfo.CoinCode)
+
+	//20200616add for All WDC,WGCAddr:
+	//Part2 Addr is WDC
+	var Part2Addr string
+	var OrgGatterAddr string
+	OrgGatterAddr = reqQueryInfo.CoinCode
+	if reqQueryInfo.CoinCode == "WGC" {
+		Part2Addr = "WDC"
+	}else{
+		Part2Addr = "WGC"
+	}
+	reqQueryInfo.CoinCode = Part2Addr
+	//20200616 fix val Offset to 0;
+	reqQueryInfo.Offset = 0
+
+	log.Info("exec DepositesAddrGatterWGCWDCAddrAll2,cur reqQueryInfo is:%v ", reqQueryInfo)
+	//初始化数组
+	TotalAddressList = []string{}
+	//循环取出所用充值地址：
+	for {
+		//end 1205
+		curAddressList, bsucc := self.QueryWDCDepositesAddr(reqQueryInfo)
+		if bsucc == false {
+			log.Error("WithdrawsDeposites err! cur reqQueryInfo is:%v", reqQueryInfo)
+			//1205:
+			break
+		}
+		if len(curAddressList) == 0 {
+			log.Info("WithdrawsDeposites finished! cur reqQueryInfo is:%v,get addrlist is 0", reqQueryInfo)
+			//1205:
+			break
+		}
+		//log.Info("QueryWDCDepositesAddr good! get len is :%d,curAddressList is:%v", len(curAddressList), curAddressList)
+		for _, getAddr := range curAddressList {
+			TotalAddressList = append(TotalAddressList, getAddr)
+		}
+		reqQueryInfo.Offset += len(curAddressList)
+	}
+	log.Info("DepositesAddrGatterWGCWDCAddrAll,get CoinCode :WGC and WDC :Total finished! get TotalAddressList len is :%d", len(TotalAddressList))
+	for _, getAddr := range TotalAddressList {
+
+		self.TotalAddressListWGCWDC = append(self.TotalAddressListWGCWDC, getAddr)
+	}
+
+	//20200616,恢复coincode：
+	reqQueryInfo.CoinCode = OrgGatterAddr
+	log.Info("the org req CoinCode is :%s,DepositesAddrGatterWGCWDCAddrAll :Total finished! get TotalAddressListWGCWDC len is :%d", reqQueryInfo.CoinCode,len(self.TotalAddressListWGCWDC))
+
+	//从settlecenter测，获取配置的大账户归集限额
+	//
+	//20200611,update for WGC
+	configs,bsucc := self.QueryDepositGroupConfig(reqQueryInfo.CoinCode)
+
+	if bsucc != true {
+		log.Error("QueryDepositGroupConfig res err! get configs is:empty")
+		return 0,false
+	}
+	log.Info("QueryDepositGroupConfig res good! get configs is:%v", configs[0])
+
+	if len(configs) > 0{
+		threshold =configs[0].Threshold
+	}else{
+		threshold = 444
+
+	}
+	log.Info("exec QueryDepositGroupConfig(),get WDC GroupConfig for threshold succ ,threshold values is %.8f\n",threshold)
+
+	//threshold = 250
+	//WDCGatterToAddress
+	curGatterToAddress := config.GbConf.WDCGatterToAddress
+	var errmsg string
+
+	//sgj 20200612 add 地址校验，，for verifyAddress
+	vertifyVal,err :=self.WdcRpcClient.CheckVerifyAddress(curGatterToAddress)
+	if err !=nil || vertifyVal < 0 {
+		log.Error("DepositesAddrGatter.CheckVerifyAddress() fail, get err=%v,errinfo :%s,cur toGatherAddr is: %v,get vertifyVal is:%d", err,errmsg,curGatterToAddress,vertifyVal)
+		//返回失败，参数错误!
+
+		return 0,false
+	}
+	log.Info("DepositesAddrGatter.CheckVerifyAddress() succ,cur toGatherAddr is: %v,get vertifyVal is:%d",curGatterToAddress,vertifyVal)
+
+	curaddrrec,err := GWdcDataStore.GetWDCAddressRec(curGatterToAddress)
+	if err != nil{
+		log.Error("GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curGatteraddress =%s",curGatterToAddress)
+		return 0,false
+	}
+
+	//获取大账户余额	curGatterToAddress,
+	//20200612 add for WGC balance
+	var addrtotalAmount float64
+	if reqQueryInfo.CoinCode == "WDC" {
+		addrtotalAmount, err, errmsg = self.WdcRpcClient.SendBalancePostFormNode(curaddrrec.PubKeyHash)
+	}else{	//WGC
+		addrtotalAmount, err = self.WdcRpcClient.GetWDCAddrTokenBalance("WGC", curGatterToAddress)
+
+	}
+	addrtotalAmount = addrtotalAmount /100000000
+	if err !=nil{
+		log.Error("DepositesAddrGatter.SendBalance() fail, get err=%v,errinfo :%s,cur fromAddress is: %v,getPubKeyHash is:%s", err,errmsg,curGatterToAddress,curaddrrec.PubKeyHash)
+	}
+	var limit = threshold - addrtotalAmount;
+
+	//需要归集的最大额度数量
+	self.GatherLimit = limit
+
+	log.Info("cur coinCode:%s,curGatterToAddress(%s),GetBalance is %.8f\n",reqQueryInfo.CoinCode, curGatterToAddress,addrtotalAmount)
+
+
+	//wdcbalance :=244
+	if (addrtotalAmount >= threshold) {
+		log.Info("sufficient coinCode:%s balance cur value is %.8f, wdc threshold is :%f",reqQueryInfo.CoinCode,addrtotalAmount,threshold);
+		//prvkeyGatter.setPemMemory('');
+		//reject('sufficient usdt');
+		return 0,false;
+	}
+
+	//20200616,获取全部地址数组：
+	TotalAddressList = self.TotalAddressListWGCWDC
+	log.Info("WithdrawsDeposites res succ! curGatterToAddress(WGCWDCAll) is :%s,to gather limit is:%f,get len(TotalAddressListWGCWDC) is:%d,TotalAddressListWGCWDC is:%v", curGatterToAddress,limit,len(TotalAddressList),TotalAddressList)
 	//20200611 add for WGC handle
 	for ino, curAddrItem := range TotalAddressList {
 		if reqQueryInfo.CoinCode == "WDC" {
@@ -886,7 +1104,7 @@ func(self *DepositHandle) WGCGatherTransProc(iseno int64,fromaddress string, toG
 		*/
 		return true, ""
 	}
-	log.Info("cur WGC Trans amount info: cur balance is %f,cursettle need is:%.8f, curFee is:%.8f\n", fromMount,totalNeeds,0)
+	log.Info("cur WGC Trans amount info: cur balance is %f,cursettle need is:%.8f, curFee is:%.8f\n", fromMount,totalNeeds,curWDCFee)
 
 	//获取账户Nonce,var getNonce int64
 	time.Sleep(time.Second * 4)

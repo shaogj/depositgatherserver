@@ -249,6 +249,16 @@ func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 			} else {
 				log.Info(" cur exec WithdrawsDepositGatherWDC() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
 			}
+		}else if "WGCWDCAll" == jReq.CoinType{
+			//sgj 2020066 add,合并归集所有的WGC，WDC的地址；
+			gatherAddrCount, bret = wdctranssign.WithdrawsDepositGatherWGCWDCAddrAll(0, 50, jReq.CoinType)
+
+			if bret != true {
+				log.Error("cur exec WithdrawsDepositGatherWGCWDCAddrAll() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
+			} else {
+				log.Info(" cur exec WithdrawsDepositGatherWGCWDCAddrAll() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
+			}
+
 		} else if "WGCFee" == jReq.CoinType{
 			//sgj 20200614 add
 			gatherAddrCount, bret = wdctranssign.WithdrawsDepositGatherWDCFee(0, 50, jReq.CoinType,jReq.FeeAmount,jReq.FeeThreshold)
