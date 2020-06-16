@@ -863,14 +863,14 @@ func(self *DepositHandle) WGCGatherTransProc(iseno int64,fromaddress string, toG
 	fromMount = fromMount /100000000
 	log.Info("fromAddress(%s),GetBalance.Aft is %.8f. to gather to bigaccount!\n",getfromAddress, fromMount)
 	//curAmount,_:= cursettle.Vol.Float64()
-	curGatherAmount := fromMount - curWDCFee
+	curGatherAmount := fromMount // curWDCFee
 
 	//1114 add,满足归集最大上限为止
 	if curGatherAmount > self.GatherLimit {
 		curGatherAmount = self.GatherLimit
 	}
 
-	var totalNeeds float64 = (minWDCLimit + curWDCFee)	// * 100000000
+	var totalNeeds float64 = minWDCLimit	//(minWDCLimit + curWDCFee)	// * 100000000
 	/*
 	fromMount = fromMount * 100000000
 	*/
@@ -886,7 +886,7 @@ func(self *DepositHandle) WGCGatherTransProc(iseno int64,fromaddress string, toG
 		*/
 		return true, ""
 	}
-	log.Info("cur WGC Trans amount info: cur balance is %f,cursettle need is:%.8f, curFee is:%.8f\n", fromMount,totalNeeds,curWDCFee)
+	log.Info("cur WGC Trans amount info: cur balance is %f,cursettle need is:%.8f, curFee is:%.8f\n", fromMount,totalNeeds,0)
 
 	//获取账户Nonce,var getNonce int64
 	time.Sleep(time.Second * 4)
