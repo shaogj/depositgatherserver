@@ -663,6 +663,29 @@ func (self *DepositHandle) TransWDCFeeProc(iseno int64,coinCode string,fromAddre
 	getAddressPub := curaddrrec.PubKey
 	getAddressPriv := curaddrrec.PrivKey
 
+	//sgj 20200616 adding for Decrypt
+	getencrptedAddressPriv := curaddrrec.PrivKey
+
+	//sgj 1115 add for encrypto
+	// 对 params 进行 base64 解码
+	log.Info("GetKTCAddressRec(),get getencrptedAddressPriv is :%s", getencrptedAddressPriv)
+	dencrptedEncodeStr, err := base64.StdEncoding.DecodeString(string(getencrptedAddressPriv))
+	if err != nil {
+		log.Error("DecodeString text is:%s,err is----AAA:%v",dencrptedEncodeStr,err)
+		//return nil, err
+	}
+	//fmt.Println("Decrypt get decrpteddecodeStr len is:%d,val is====44:%s,org encrpted len is:",len(dencrptedEncodeStr),dencrptedEncodeStr,len(encrpted))
+	delastcrptedaft, err := cryptoutil.AESCBCDecrypt(GCurGetKeyStr, nil, []byte(dencrptedEncodeStr))
+	delastcrptedaftstr :=string(delastcrptedaft)
+	if err != nil {
+		log.Error("delastcrptedaft is: %s: decrypt error===888: %v", delastcrptedaftstr, err)
+	}
+	log.Info("command %s: decrypt succ===999: %s", "AESCBCDecrypt", delastcrptedaftstr)
+	getAddressPriv = delastcrptedaftstr
+	//sgj 20200605
+
+	log.Info("after GetWDCAddressRec(),cur getfromAddress is:%s,get getAddressPriv is:%s,\n",getfromAddress, "getAddressPriv")
+	//sgj 20200616 adding end
 
 	//获取账户余额	getfromAddress,
 
