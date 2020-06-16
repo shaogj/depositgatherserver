@@ -34,7 +34,7 @@ func (self * EtherumWrapper)TransactionReceipt(strHash string ,res * base.Struct
 	res.TxHash=txReceipt.TxHash.String()
 	res.ContractAddress=txReceipt.ContractAddress.String()
 	res.GasUsed=txReceipt.GasUsed
-	res.Status=txReceipt.Status
+	res.Status=uint64(txReceipt.Status)
 	return  nil
 }
 func (self * EtherumWrapper)NonceAt(strAddress string) (uint64, error) {
