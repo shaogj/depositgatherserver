@@ -84,6 +84,12 @@ type DepositHandle struct {
 	//sgj 0107 add from nonce add
 	nonce_addr map[string]int64
 }
+//20200606add,for map
+func (self *DepositHandle) InitData(){
+	self.nonce_addr = make(map[string]int64)
+	//same to init in WDCTransHandle
+	self.TransWGCFeeAddrCount = 0
+}
 func (self *DepositHandle) QueryWDCDepositesAddr(reqQueryInfo *proto.DepositeAddresssReq) (Address []string, succflag bool) {
 	var signData string
 	curQueryInfo := proto.DepositeAddresssReq{}
