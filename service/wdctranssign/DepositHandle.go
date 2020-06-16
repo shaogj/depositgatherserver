@@ -386,6 +386,18 @@ func (self *DepositHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddre
 	//threshold = 250
 	//WDCGatterToAddress
 	curGatterToAddress := config.GbConf.WDCGatterToAddress
+	var errmsg string
+
+	//sgj 20200612 add 地址校验，，for verifyAddress
+	vertifyVal,err :=self.WdcRpcClient.CheckVerifyAddress(curGatterToAddress)
+	if err !=nil || vertifyVal < 0 {
+		log.Error("DepositesAddrGatter.CheckVerifyAddress() fail, get err=%v,errinfo :%s,cur toGatherAddr is: %v,get vertifyVal is:%d", err,errmsg,curGatterToAddress,vertifyVal)
+		//返回失败，参数错误!
+
+		return 0,false
+	}
+	log.Info("DepositesAddrGatter.CheckVerifyAddress() succ,cur toGatherAddr is: %v,get vertifyVal is:%d",curGatterToAddress,vertifyVal)
+
 	curaddrrec,err := GWdcDataStore.GetWDCAddressRec(curGatterToAddress)
 	if err != nil{
 		log.Error("GetWDCAddressRec(),get rows for fromaddress record failed!,WDCTransProc() exec to return.curGatteraddress =%s",curGatterToAddress)
@@ -395,7 +407,6 @@ func (self *DepositHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddre
 	//获取大账户余额	curGatterToAddress,
 	//20200612 add for WGC balance
 	var addrtotalAmount float64
-	var errmsg string
 	if reqQueryInfo.CoinCode == "WDC" {
 		addrtotalAmount, err, errmsg = self.WdcRpcClient.SendBalancePostFormNode(curaddrrec.PubKeyHash)
 	}else{	//WGC
@@ -424,15 +435,6 @@ func (self *DepositHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddre
 
 	log.Info("WithdrawsDeposites res succ! curGatterToAddress is :%s,to gather limit is:%f,get len(TotalAddressList) is:%d,TotalAddressList is:%v", curGatterToAddress,limit,len(TotalAddressList),TotalAddressList)
 
-	//sgj 20200612 add 地址校验，，for verifyAddress
-	vertifyVal,err :=self.WdcRpcClient.CheckVerifyAddress(curGatterToAddress)
-	if err !=nil || vertifyVal < 0 {
-		log.Error("DepositesAddrGatter.CheckVerifyAddress() fail, get err=%v,errinfo :%s,cur toGatherAddr is: %v,get vertifyVal is:%d", err,errmsg,curGatterToAddress,vertifyVal)
-		//返回失败，参数错误!
-
-		return 0,false
-	}
-	log.Info("DepositesAddrGatter.CheckVerifyAddress() succ,cur toGatherAddr is: %v,get vertifyVal is:%d",curGatterToAddress,vertifyVal)
 	//20200611 add for WGC handle
 	for ino, curAddrItem := range TotalAddressList {
 		if reqQueryInfo.CoinCode == "WDC" {
