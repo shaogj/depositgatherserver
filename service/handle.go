@@ -234,6 +234,7 @@ func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 	//创建请求列表
 	sttError := transproto.ErrorSuccess
 	var gatherAddrCount int
+	var gatherWGCCount,gatherWDCCount int
 	var bret bool
 		//20200611 add for WGC
 		if "WDC" == jReq.CoinType || "WGC" == jReq.CoinType{
@@ -251,7 +252,7 @@ func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 			}
 		}else if "WGCWDCAll" == jReq.CoinType{
 			//sgj 2020066 add,合并归集所有的WGC，WDC的地址；
-			gatherAddrCount, bret = wdctranssign.WithdrawsDepositGatherWGCWDCAddrAll(0, 50, jReq.CoinType)
+			gatherWGCCount,gatherWDCCount,bret = wdctranssign.WithdrawsDepositGatherWGCWDCAddrAll(0, 50, jReq.CoinType)
 
 			if bret != true {
 				log.Error("cur exec WithdrawsDepositGatherWGCWDCAddrAll() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
@@ -280,8 +281,18 @@ func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 		Count:         int64(gatherAddrCount),
 		CoinType:      jReq.CoinType,
 	}
+	if "WGCWDCAll" == jReq.CoinType{
+		makeaddrsAll := transproto.DepositAddressGatherResAllCount{
+			WGCGatherCount:         int64(gatherWGCCount),
+			WDCGatherCount:         int64(gatherWDCCount),
+			CoinType:      jReq.CoinType,
+		}
+		GeneJsonResultFin(w, r, makeaddrsAll, sttError.Code, sttError.Desc)
 
-	GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)
+	}else{
+		GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)
+
+	}
 }
 
 //sgj 1218add

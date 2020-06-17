@@ -100,6 +100,14 @@ type DepositAddressGatherRes struct {
 	CoinType string `json:"coinType"`
 }
 
+//0617 add for WGCWGCAll gather cmd
+// protocol: 返回: 执行充值归集指令的结果
+type DepositAddressGatherResAllCount struct {
+	WGCGatherCount    int64  `json:"WGCGatherCount"`
+	WDCGatherCount    int64  `json:"WDCGatherCount"`
+	CoinType string `json:"coinType"`
+}
+
 //end add 11.14
 
 // protocol: 返回: 生成数字支付地址

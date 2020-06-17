@@ -49,9 +49,11 @@ func WithdrawsDepositGatherWDC(offset, limit uint, cointype string)(addressCount
 
 //20200616add forAll WDCWGCAddr
 
-func WithdrawsDepositGatherWGCWDCAddrAll(offset, limit uint, cointype string)(addressCount int,bsucc bool){
+func WithdrawsDepositGatherWGCWDCAddrAll(offset, limit uint, cointype string)(gatherWGCCount,gatherWDCCount int,bsucc bool){
 	var reqDepositInfo proto.DepositeAddresssReq
-
+	//0617 add 各币种的归集数
+	var WGCGatherCount int
+	var WDCGatherCount int
 	ht := CHttpClientEx{}
 	//sgj add
 	ht.Init()
@@ -68,15 +70,18 @@ func WithdrawsDepositGatherWGCWDCAddrAll(offset, limit uint, cointype string)(ad
 
 	opercount,bRet := GDepositHandle.DepositesAddrGatterWGCWDCAddrAll(&reqDepositInfo)
 	//Part 2: Gather WDC amount
+	WGCGatherCount = opercount
 
 	reqDepositInfo.CoinCode = "WDC"	//cointype
 	GDepositHandle.TotalAddressListWGCWDC = make([]string,0)
 	log.Info("WithdrawsDepositGatherWGCWDCAddrAll,cur to handle Part2, all WDC,reqDepositInfo is :%v", reqDepositInfo)
+
 	opercount,bRet = GDepositHandle.DepositesAddrGatterWGCWDCAddrAll(&reqDepositInfo)
 
 	log.Info("WithdrawsDepositGatherWGCWDCAddrAll,handle succ!,reqDepositInfo is :%v,return is :%v", reqDepositInfo,bRet)
 	time.Sleep(time.Second * 2)
-	return opercount,bRet
+	WDCGatherCount = opercount
+	return WGCGatherCount,WDCGatherCount,bRet
 
 }
 
@@ -769,7 +774,7 @@ func(self *DepositHandle) WDCGatherTransProc(iseno int64,fromaddress string, toG
 		*/
 		return true, ""
 	}
-	log.Info("cur WDC Trans amount info: cur balance is %f,cursettle need is:%.8f, curFee is:%.8f\n", fromMount,totalNeeds,0.02)
+	log.Info("cur WDC Trans amount info: cur balance is %f,cursettle need is:%.8f, curFee is:%.8f\n", fromMount,totalNeeds,0.002)
 
 	//获取账户Nonce,var getNonce int64
 	time.Sleep(time.Second * 4)
@@ -778,6 +783,25 @@ func(self *DepositHandle) WDCGatherTransProc(iseno int64,fromaddress string, toG
 		log.Error("WDCTransProc.SendNonce() fail, get err=%v,errinfo :%s,cur fromAddress is: %v,getPubKeyHash is:%s", err,errmsg,getfromAddress,curaddrrec.PubKeyHash)
 	}
 	getNonce := int64(curNonce)
+
+	//sgj 0107 add for avoid same nonce
+	var curnonce_saving int64 = 0
+	if curnonce, ok := self.nonce_addr[getfromAddress]; ok {
+		curnonce_saving = curnonce
+		log.Info("TransWDCFeeProc， cur address is:%s,find map nonce val is:%d", getfromAddress, curnonce)
+	} else {
+		self.nonce_addr[getfromAddress] = getNonce
+		log.Info("TransWDCFeeProc， cur address is:%s,find map no nonce val, to set map nonce val is:%d", getfromAddress, getNonce+1)
+	}
+
+	//可能存在并发时，取得的接口nonce为相同值;取较大的nonce；
+	if curnonce_saving > getNonce {
+		getNonce = curnonce_saving
+	}
+	self.nonce_addr[getfromAddress] = getNonce + 1
+	log.Info("TransWDCFeeProc， cur address is:%s, to using nonce value is:%d", getfromAddress, getNonce)
+
+	//sgj 0107 end
 
 	//sgj 20200109 add 地址校验，，for verifyAddress
 	//add Part2,from addr to verity:
@@ -1113,6 +1137,25 @@ func(self *DepositHandle) WGCGatherTransProc(iseno int64,fromaddress string, toG
 		log.Error("WGCTransProc.SendNonce() fail, get err=%v,errinfo :%s,cur fromAddress is: %v,getPubKeyHash is:%s", err,errmsg,getfromAddress,curaddrrec.PubKeyHash)
 	}
 	getNonce := int64(curNonce)
+	//sgj 0617add
+	//sgj 0107 add for avoid same nonce
+	var curnonce_saving int64 = 0
+	if curnonce, ok := self.nonce_addr[getfromAddress]; ok {
+		curnonce_saving = curnonce
+		log.Info("TransWDCFeeProc， cur address is:%s,find map nonce val is:%d", getfromAddress, curnonce)
+	} else {
+		self.nonce_addr[getfromAddress] = getNonce
+		log.Info("TransWDCFeeProc， cur address is:%s,find map no nonce val, to set map nonce val is:%d", getfromAddress, getNonce+1)
+	}
+
+	//可能存在并发时，取得的接口nonce为相同值;取较大的nonce；
+	if curnonce_saving > getNonce {
+		getNonce = curnonce_saving
+	}
+	self.nonce_addr[getfromAddress] = getNonce + 1
+	log.Info("TransWDCFeeProc， cur address is:%s, to using nonce value is:%d", getfromAddress, getNonce)
+
+	//sgj 0107 end
 
 	getToPubHashStr,err :=self.WdcRpcClient.GetAddressPubHash(toGatherAddr)
 	if err !=nil{
