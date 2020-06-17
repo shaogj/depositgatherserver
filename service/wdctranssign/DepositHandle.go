@@ -378,6 +378,9 @@ func (self *DepositHandle) DepositWGCGatterAddrFee(reqQueryInfo *proto.DepositeA
 //开始资金归集的流程
 func (self *DepositHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddresssReq) (opercount int,is bool) {
 
+	//20200617add==to check:
+	getAllAddrCount ,_ := self.GetAllDepositesGatterAddr(reqQueryInfo)
+	log.Info("WithdrawsDeposites finished! cur getAllWDCWGCAddrCount is:%d", getAllAddrCount)
 
 	var threshold float64 = 22;
 	//fix 初始化count
@@ -385,7 +388,9 @@ func (self *DepositHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddre
 	//1205 fix add offset:
 	var TotalAddressList = make([]string,0)
 	reqQueryInfo.Offset = 0
+	//20200617,upgrade for get AddrList, by GetAllDepositesGatterAddr above;
 	//循环取出所用充值地址：
+	/*
 	for {
 		//end 1205
 		curAddressList, bsucc := self.QueryWDCDepositesAddr(reqQueryInfo)
@@ -405,6 +410,8 @@ func (self *DepositHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddre
 		}
 		reqQueryInfo.Offset += len(curAddressList)
 	}
+	*/
+	TotalAddressList = self.TotalAddressListWGCWDC
 	log.Info("WithdrawsDeposites Total finished! get TotalAddressList len is :%d", len(TotalAddressList))
 
 	//end 1205.1
@@ -503,6 +510,94 @@ func (self *DepositHandle) DepositesAddrGatter(reqQueryInfo *proto.DepositeAddre
 	return self.GatherAddrCount,true
 
 
+}
+
+
+//0617add，开始WGC，WDC合并地址的全部获取
+func (self *DepositHandle) GetAllDepositesGatterAddr(reqQueryInfo *proto.DepositeAddresssReq) (opercount int,is bool) {
+
+	//fix 初始化count
+	self.GatherAddrCount = 0
+	var TotalAddressList = make([]string,0)
+	reqQueryInfo.Offset = 0
+	//20200616add for All WDC,WGCAddr:
+	self.TotalAddressListWGCWDC = make([]string,0)
+	//Part1 Addr is WGC
+	//reqQueryInfo.CoinCode = "WGC"
+	//循环取出所用充值地址：
+	log.Info("exec GetAllDepositesGatterAddr,get CoinCode :%s,begin to gather curAddressList Part1", reqQueryInfo.CoinCode)
+	for {
+		//end 1205
+		curAddressList, bsucc := self.QueryWDCDepositesAddr(reqQueryInfo)
+		if bsucc == false {
+			log.Error("WithdrawsDeposites err! cur reqQueryInfo is:%v", reqQueryInfo)
+			//1205:
+			break
+		}
+		if len(curAddressList) == 0 {
+			log.Info("WithdrawsDeposites finished! cur reqQueryInfo is:%v,get addrlist is 0", reqQueryInfo)
+			//1205:
+			break
+		}
+		//log.Info("QueryWDCDepositesAddr good! get len is :%d,curAddressList is:%v", len(curAddressList), curAddressList)
+		for _, getAddr := range curAddressList {
+			TotalAddressList = append(TotalAddressList, getAddr)
+		}
+		reqQueryInfo.Offset += len(curAddressList)
+	}
+	//20200616 add
+	self.TotalAddressListWGCWDC = TotalAddressList
+
+	log.Info("GetAllDepositesGatterAddr,get CoinCode :%s :Total finished! get TotalAddressListWGCWDC len is :%d", reqQueryInfo.CoinCode,len(self.TotalAddressListWGCWDC))
+	log.Info("exec GetAllDepositesGatterAddr,get CoinCode :%s,begin to gather curAddressList Part2", reqQueryInfo.CoinCode)
+
+	//20200616add for All WDC,WGCAddr:
+	//Part2 Addr is WDC
+	var Part2Addr string
+	var OrgGatterAddr string
+	OrgGatterAddr = reqQueryInfo.CoinCode
+	if reqQueryInfo.CoinCode == "WGC" {
+		Part2Addr = "WDC"
+	}else{
+		Part2Addr = "WGC"
+	}
+	reqQueryInfo.CoinCode = Part2Addr
+	//20200616 fix val Offset to 0;
+	reqQueryInfo.Offset = 0
+
+	log.Info("exec GetAllDepositesGatterAddr2,cur reqQueryInfo is:%v ", reqQueryInfo)
+	//初始化数组
+	TotalAddressList = []string{}
+	//循环取出所用充值地址：
+	for {
+		//end 1205
+		curAddressList, bsucc := self.QueryWDCDepositesAddr(reqQueryInfo)
+		if bsucc == false {
+			log.Error("WithdrawsDeposites err! cur reqQueryInfo is:%v", reqQueryInfo)
+			//1205:
+			break
+		}
+		if len(curAddressList) == 0 {
+			log.Info("WithdrawsDeposites finished! cur reqQueryInfo is:%v,get addrlist is 0", reqQueryInfo)
+			//1205:
+			break
+		}
+		//log.Info("QueryWDCDepositesAddr good! get len is :%d,curAddressList is:%v", len(curAddressList), curAddressList)
+		for _, getAddr := range curAddressList {
+			TotalAddressList = append(TotalAddressList, getAddr)
+		}
+		reqQueryInfo.Offset += len(curAddressList)
+	}
+	log.Info("GetAllDepositesGatterAddr,get CoinCode :WGC and WDC :Total finished! get TotalAddressList len is :%d", len(TotalAddressList))
+	for _, getAddr := range TotalAddressList {
+
+		self.TotalAddressListWGCWDC = append(self.TotalAddressListWGCWDC, getAddr)
+	}
+
+	//20200616,恢复coincode：
+	reqQueryInfo.CoinCode = OrgGatterAddr
+	log.Info("the org req CoinCode is :%s,GetAllDepositesGatterAddr :Total finished! get TotalAddressListWGCWDC len is :%d", reqQueryInfo.CoinCode,len(self.TotalAddressListWGCWDC))
+	return len(self.TotalAddressListWGCWDC),true
 }
 
 //开始WGC，WDC合并地址资金归集的流程
