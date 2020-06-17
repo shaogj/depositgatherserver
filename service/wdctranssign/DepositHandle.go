@@ -290,10 +290,16 @@ func (self *DepositHandle) QueryDepositGroupConfig(group string) (getDepositConf
 func (self *DepositHandle) DepositWGCGatterAddrFee(reqQueryInfo *proto.DepositeAddresssReq,setfeeAmount float64,feeThreshold float64) (opercount int,is bool) {
 
 	self.TransWGCFeeAddrCount = 0
+	//20200617add==to check:
+	//循环取出WDC,WGC所有的充值地址：
+	getAllAddrCount ,_ := self.GetAllDepositesGatterAddr(reqQueryInfo)
+	log.Info("DepositWGCGatterAddrFee finished! cur getAllWDCWGCAddrCount is:%d", getAllAddrCount)
+
 	//1205 fix add offset:
 	var TotalAddressList = make([]string,0)
 	reqQueryInfo.Offset = 0
 	//循环取出所用充值地址：
+	/*
 	for {
 		curAddressList, bsucc := self.QueryWDCDepositesAddr(reqQueryInfo)
 		if bsucc == false {
@@ -310,7 +316,9 @@ func (self *DepositHandle) DepositWGCGatterAddrFee(reqQueryInfo *proto.DepositeA
 		}
 		reqQueryInfo.Offset += len(curAddressList)
 	}
-	log.Info("WithdrawsDeposites Total finished! get WGC TotalAddressList len is :%d", len(TotalAddressList))
+	*/
+	TotalAddressList = self.TotalAddressListWGCWDC
+	log.Info("DepositWGCGatterAddrFee Total finished! get  TotalAddressList len is :%d", len(TotalAddressList))
 
 	//从settlecenter测，获取配置的大账户归集限额
 	//20200611,update for WGC
