@@ -366,7 +366,8 @@ func (self *DepositHandle) DepositWGCGatterAddrFee(reqQueryInfo *proto.DepositeA
 					continue
 				}
 				//WGC 's balance 无余额，不需归集，不打WDC手续费：
-				if fromWGCMount <0{
+				//0618 fix bug,balance = 0;
+				if fromWGCMount <=0{
 					log.Info("WGC.GetWDCAddrTokenBalance() get addrinfo :%s,cur curToFeeAddrItem is: %v,curWGCMount is:%v.no need trans fee.to skip", curToFeeAddrItem, fromWGCMount)
 					continue
 				}
