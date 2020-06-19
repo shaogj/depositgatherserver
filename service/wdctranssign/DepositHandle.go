@@ -367,11 +367,11 @@ func (self *DepositHandle) DepositWGCGatterAddrFee(reqQueryInfo *proto.DepositeA
 				}
 				//WGC 's balance 无余额，不需归集，不打WDC手续费：
 				//0618 fix bug,balance = 0;
-				if fromWGCMount <=0{
-					log.Info("WGC.GetWDCAddrTokenBalance() get addrinfo :%s,cur curToFeeAddrItem is: %v,curWGCMount is:%v.no need trans fee.to skip", curToFeeAddrItem, fromWGCMount)
+				if fromWGCMount <= 0{
+					log.Info("WGC.GetWDCAddrTokenBalance(),cur curToFeeAddrItem is: %v,curWGCMount is:%f.no need wdcfee.to skip transfer wdcfee", curToFeeAddrItem, fromWGCMount)
 					continue
 				}
-				log.Info("WGC.GetWDCAddrTokenBalance(),cur curToFeeAddrItem is: %v,curWGCMount is:%v.can be Gather WGC.so need to trans fee", curToFeeAddrItem, fromWGCMount)
+				log.Info("WGC.GetWDCAddrTokenBalance(),cur curToFeeAddrItem is: %v,curWGCMount is:%v.can be Gather WGC.so need to transfer wdcfee", curToFeeAddrItem, fromWGCMount)
 
 				_,gettxid := self.TransWDCFeeProc(int64(ino),"WGC",curWDCTransferAddress,curToFeeAddrItem,feeAmount,transFeeThreshold)
 				log.Info("cur TransWDCFeeProc() finished, curWDCTransferOutAddress is %s, curToFeeAddrItem is:%s,gettxid is:%s",curWDCTransferAddress,curToFeeAddrItem,gettxid);
