@@ -18,6 +18,7 @@ import (
 	. "shaogj/utils"
 
 	"github.com/go-xorm/xorm"
+	"strings"
 )
 
 /*
@@ -217,6 +218,9 @@ var TestWDCTransUrl string = "http://192.168.1.190:8089/wallet/TxUtility"
 func (self *WDCTransHandle) ClientToTransferAccount(fromPubkeyStr, toPubkeyHashStr string, amount float64, prikeyStr string, nonce int64) (gettxid string, gettxmesage string, err error, errmsg string) {
 
 	UrlVerify := fmt.Sprintf("%s/%s", self.WDCTransUrl, "ClientToTransferAccount")
+	// 20200619,去除换行符
+	prikeyStr = strings.Replace(prikeyStr, "\n", "", -1)
+
 	curToTransferAccount := proto.ClientToTransferAccountParams{}
 	curToTransferAccount.FromPubkeyStr = fromPubkeyStr
 	curToTransferAccount.ToPubkeyHashStr = toPubkeyHashStr
@@ -236,7 +240,9 @@ func (self *WDCTransHandle) ClientToTransferAccount(fromPubkeyStr, toPubkeyHashS
 		log.Error("ht.RequestResponseJsonJson  statuscode111=%d,error=%d.%v url=%s ", statusCode, errorCode, err, UrlVerify)
 		return "", "", err, resSDKAccount.Message
 	}
-	if statusCode == 200 {
+	//20200619fix bug!!
+	//if statusCode == 200 {
+	if resSDKAccount.StatusCode == "200" {
 		//二次对node rpc' 内部封装的解析
 		log.Info("transserver.ClientToTransferProve,get statusCode is :%s,res=%s,get cur txHexStr is:%d", statusCode, strRes, txHexStr)
 
@@ -254,8 +260,10 @@ func (self *WDCTransHandle) ClientToTransferAccount(fromPubkeyStr, toPubkeyHashS
 		txid = getResp.Data.(string)
 		log.Info(",get cur txid is:%v,txAftMessage is :%s", txid, txHexStr)
 
-	} else if statusCode == proto.ErrorRequestWDCSDK.Code {
+	//} else if statusCode == proto.ErrorRequestWDCSDK.Code {
+	} else if resSDKAccount.StatusCode == "500" {
 		errmsg = proto.ErrorRequestWDCSDK.Desc
+		log.Error("transserver.ClientToTransferProve,get cur response err!,fromPubkeyStr is:%s,StatusCode is:%s,retmessage is :%s", fromPubkeyStr,resSDKAccount.StatusCode, resSDKAccount.Message)
 
 	}
 	log.Info("transserver.ClientToTransferProve,get statusCode is :%s,txid=%s,get cur txHexStr is:%d", statusCode, txid, txHexStr)
