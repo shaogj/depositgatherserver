@@ -18,15 +18,15 @@ import (
 	"errors"
 
 	//sgj1217 add
-	"2019NNZXProj10/depositgatherserver/service/ktctranssign"
-	"2019NNZXProj10/depositgatherserver/service/ktctranssign/ktcrpc"
+	//"2019NNZXProj10/depositgatherserver/service/ktctranssign"
+	//"2019NNZXProj10/depositgatherserver/service/ktctranssign/ktcrpc"
 
 	"github.com/btcsuite/btcd/btcjson"
 
 	//sgj 0116add
 	"2019NNZXProj10/depositgatherserver/service/ethtranssign"
 	"2019NNZXProj10/depositgatherserver/service/ethtranssign/ethclientrpc"
-	"2019NNZXProj10/depositgatherserver/service/omnitranssign"
+	//"2019NNZXProj10/depositgatherserver/service/omnitranssign"
 	"fmt"
 )
 
@@ -516,10 +516,10 @@ func (self *TotalDepositHandle) EETHGatherTransProc(iseno int64, cointype string
 	switch cointype {
 	case config.CoinUSDT:
 		fmt.Printf("USDT--do()")
-		signInfoRes, status, err = omnitranssign.G_UsdtSignHandle.PaySignTransProc(31, fromaddress, getAddressPriv, 0, toGatherAddr, self.GatherLimit, true)
+		//signInfoRes, status, err = omnitranssign.G_UsdtSignHandle.PaySignTransProc(31, fromaddress, getAddressPriv, 0, toGatherAddr, self.GatherLimit, true)
 	case config.CoinBitcoin:
 		fmt.Printf("BTC--do()")
-		signInfoRes, curGatherAmount, status, err = GBtcSignHandle.PaySignTransProc(fromaddress, getAddressPriv, 0, toGatherAddr, self.GatherLimit)
+		//signInfoRes, curGatherAmount, status, err = GBtcSignHandle.PaySignTransProc(fromaddress, getAddressPriv, 0, toGatherAddr, self.GatherLimit)
 
 	case config.CoinEthereum:
 		//fmt.Printf("ETH--do()")
