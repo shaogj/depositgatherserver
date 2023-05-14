@@ -1,0 +1,8 @@
+File opened at: 2023/03/23 12:03:28
+Built with gc go1.19.4 for darwin/arm64
+[E 2023/03/23 12:03:28.549 model.go:92] GenerateAccount(),Insert row is :&{0  CoinBSC 0 1f839398725e5648aa25cddf11c7d1b1de3d1626afb914104f1c51f04f4f6e14  0xe438d0356eb05c2bb85038538b7caf55c1f78b62  1679544208 0 0},rowsnum is:0,err is-:Error 1054 (42S22): Unknown column 'account_name' in 'field list' 
+[E 2023/03/23 12:03:28.549 handle.go:180] CoinBSC.GenerateAccount() error=Error 1054 (42S22): Unknown column 'account_name' in 'field list'
+File opened at: 2023/03/23 12:11:19
+Built with gc go1.19.4 for darwin/arm64
+[E 2023/03/23 12:11:19.616 model.go:116] GenerateBSCAccount(),Insert row is :&{0  1111122222 CoinBSC 0x237f70d741ee826a1643365568dbd962db4c9f2d ffba4e0ecce9919f47acb653c589050eff384dd821138c36d800514a7f9d9126 getpubKey getpubKeyHash 1679544679 0},rowsnum is:0,err is-:Error 1054 (42S22): Unknown column 'pub_key_hash' in 'field list' 
+[E 2023/03/23 12:11:19.616 handle.go:183] CoinBSC.GenerateAccount() error=Error 1054 (42S22): Unknown column 'pub_key_hash' in 'field list'

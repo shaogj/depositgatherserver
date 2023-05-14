@@ -2,8 +2,8 @@ package accounts
 
 import (
 	"2019NNZXProj10/depositgatherserver/proto"
-	. "shaogj/utils"
 	"fmt"
+	. "shaogj/utils"
 
 	"github.com/mkideal/log"
 )

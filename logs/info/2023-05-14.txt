@@ -1,0 +1,22 @@
+File opened at: 2023/05/14 13:15:14
+Built with gc go1.19.4 for darwin/arm64
+[I 2023/05/14 13:15:14.427 handle.go:117] fun=RemoteSignCreateAddress() bef--,request={CoinBSC 1000 1}
+[I 2023/05/14 13:15:14.428 handle.go:130] fun=RemoteSignCreateAddress(),request={"cointype": "CoinBSC","accountNumber":1000,"IsReturnList": 1}
+File opened at: 2023/05/14 13:15:22
+Built with gc go1.19.4 for darwin/arm64
+[I 2023/05/14 13:15:22.221 configtool.go:231] log level: TRACE
+[I 2023/05/14 13:15:22.221 configtool.go:239] ----------------DSC-PRC RPCHostPort is:---------%!d(string=192.168.1.187:30066)------
+[I 2023/05/14 13:15:22.221 configtool.go:243] ---------------DSC--PRC RPCUser is:---------sgjdsc------
+[I 2023/05/14 13:15:22.221 configtool.go:260] ----------------USDT-PRC RPCHostPort is:---------%!d(string=127.0.0.1:9332)------
+[I 2023/05/14 13:15:22.221 configtool.go:264] ---------------USDT--PRC RPCUser is:---------shaogj------
+[I 2023/05/14 13:15:22.221 configtool.go:281] ----------------BTC-PRC RPCHostPort is:---------%!d(string=18.182.84.229:8777)------
+[I 2023/05/14 13:15:22.221 configtool.go:285] ---------------BTC--PRC RPCUser is:---------shaogj------
+[I 2023/05/14 13:15:22.221 configtool.go:315] ----------------KTC-PRC RPCHostPort is:---------%!d(string=http://18.182.84.229:8777)------
+[I 2023/05/14 13:15:22.221 configtool.go:319] ---------------KTC--PRC RPCUser is:---------shaogj------
+[I 2023/05/14 13:15:22.222 configtool.go:361] ConfigInfo:::{MySqlCfg:{Host:192.168.1.99 Port:3306 User:8lab Password:8lab Dbname:bsc_accounts2023} MySqlCfgKTC:{Host:18.176.110.109 Port:3306 User:shaogejian Password:shaogejian Dbname:ggexaddressallktc} SettleApiReq:{SettlApiQuery: SettlApiUpdate:} SettleApiQuery:https://devapi.ggex.com/v1/settle/withdraws?action=query SettleApiUpdate:http://localhost:8027/withdraws?action=updatewdc SettleApiDepositQuery:http://localhost:8027/depositAddresss?action=query WebPort:4466 JavaSDKUrl:http://192.168.1.138:8090/wallet/WalletUtility WDCTransUrl:http://192.168.1.138:8090/wallet/TxUtility WDCNodeUrl:http://192.168.1.138:19585 WDCConf:{RPCPort:0 RPCHostPort: RPCUser: RPCPassWord:} SettleAccessKey:{AccessComePubKey: AccessPrivKey:27f157d04ca4c308a69c91b453cd72abad1357d0922b08bc3230a72d8d794060} WDCTransferOutAddress:1HFCUeNHcL6Drf4TPwBLG6RgYVe9o41BVj BTCTransferOutAddress: USDTTransferOutAddress: ETHTransferOutAddress: KTCTransferOutAddress: EtherScanApiKey: EtherumNetwork: WDCGatterToAddress:1Cw7bhuoG4nSk2LXbnySLXH9eGuTU1LCtq WDCGatterConfigUrl:https://devapi.ggex.com/v1/settle/getconfig?action=query KTCGatterToAddress:39QXajNbM7aqurkav6DF6vyupY1cn48a8i KTCGatterConfigUrl:https://api.tigermex.com/v1/settle/getconfig?action=query BTCGatterToAddress:13xDZqDS8Z8752ksHR4rCUhLt4cjGsZDkS USDTGatterToAddress:13xDZqDS8Z8752ksHR4rCUhLt4cjGsZDkS ETHGatterToAddress:0x987734c06522264316ce28fF6D9e60111125d95f EETHGatterConfigUrl:https://api.eethex.com/v1/settle/getconfig?action=query}
+[I 2023/05/14 13:15:22.222 mainserverDepositSTD.go:60] --sgj==>get conf info is {30066 192.168.1.187:30066 sgjdsc 123456 0}
+[I 2023/05/14 13:15:22.222 model.go:22] Mysql{8lab:8lab@tcp(192.168.1.99:3306)/bsc_accounts2023?charset=utf8mb4&parseTime=true}
+[I 2023/05/14 13:15:22.222 model.go:30] InitMysqlDB() exec succ!,conf.Host is:192.168.1.99
+[I 2023/05/14 13:15:22.222 mainserverDepositSTD.go:104] strHost is ::4466
+[I 2023/05/14 13:15:27.996 handle.go:117] fun=RemoteSignCreateAddress() bef--,request={CoinBSC 1000 1}
+[I 2023/05/14 13:15:27.996 handle.go:130] fun=RemoteSignCreateAddress(),request={"cointype": "CoinBSC","accountNumber":1000,"IsReturnList": 1}

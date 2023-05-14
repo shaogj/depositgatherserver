@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
+
 	//"strings"
 	//"math/big"
 	//"strconv"
@@ -14,16 +16,11 @@ import (
 
 	"2019NNZXProj10/depositgatherserver/accounts"
 	transproto "2019NNZXProj10/depositgatherserver/proto"
-	"2019NNZXProj10/depositgatherserver/service/wdctranssign"
-
-	"2019NNZXProj10/depositgatherserver/KeyStore"
+	//"2019NNZXProj10/depositgatherserver/service/wdctranssign"
 
 	"2019NNZXProj10/depositgatherserver/cryptoutil"
 	"github.com/mkideal/log"
-	. "shaogj/utils"
-	"time"
-	"2019NNZXProj10/depositgatherserver/service/ktctranssign"
-
+	//. "shaogj/utils"
 )
 
 type ReturnInfo struct {
@@ -74,15 +71,15 @@ const StatusNewAddressErr = 201 //  生成账号地址错误
 
 var GSettleAccessKey string
 
-//跨域访问
+// 跨域访问
 func HttpExCrossDomainAccess(w *http.ResponseWriter) {
 	// 允许跨域访问
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 	(*w).Header().Set("Access-Control-Allow-Headers", "content-type")
 }
 
-//请求数据json
-//请求数据转为json数据
+// 请求数据json
+// 请求数据转为json数据
 func HttpExRequestJson(w http.ResponseWriter, r *http.Request, v interface{}) (string, transproto.ErrorInfo) {
 	HttpExCrossDomainAccess(&w)
 	if r.Method != "POST" {
@@ -110,8 +107,8 @@ desc 服务器: 成生新的地址(批量)
 curl -d '{"cointype": "CoinDSC","accountNumber":4,"IsReturnList": 1}'  http://192.168.1.166:3377/remote/getnewaddress
 */
 
-//一个默认的合作商Key
-var GCurGetKeyStr =[]byte("1234567812345678")
+// 一个默认的合作商Key
+var GCurGetKeyStr = []byte("1234567812345678")
 
 func RemoteSignCreateAddress(w http.ResponseWriter, r *http.Request) {
 
@@ -138,7 +135,7 @@ func RemoteSignCreateAddress(w http.ResponseWriter, r *http.Request) {
 	for i := int64(0); i < jReq.Count; i++ {
 		strAdrress := ""
 		//20200613update
-		if config.CoinWDC == jReq.CoinType  || "WGC" == jReq.CoinType{
+		if config.CoinWDC == jReq.CoinType || "WGC" == jReq.CoinType {
 			//1028add,调用json请求，创建地址
 			getprivkey, getpubKey, getpubKeyHash, pubKeyAddr, err := accounts.AddressGenerateWDC()
 			if err != nil {
@@ -153,13 +150,12 @@ func RemoteSignCreateAddress(w http.ResponseWriter, r *http.Request) {
 				encrpted, err := cryptoutil.AESCBCEncrypt(GCurGetKeyStr, nil, []byte(getprivkey))
 				if err != nil {
 					log.Error("ccur Encrypt text is:%s,err is:%v", getprivkey, err)
-				}else{
+				} else {
 					encrptedEncodePrivkey = base64.StdEncoding.EncodeToString(encrpted)
-					log.Info("get encrptedEncodeStr len is:%d,val is====44:%s",len(encrptedEncodePrivkey),encrptedEncodePrivkey)
+					log.Info("get encrptedEncodeStr len is:%d,val is====44:%s", len(encrptedEncodePrivkey), encrptedEncodePrivkey)
 				}
 
 				//end add 1115
-
 
 				err = AccountWDCSave(GXormMysql, "", accounts.GAccountPassword, jReq.CoinType, pubKeyAddr, encrptedEncodePrivkey, getpubKey, getpubKeyHash)
 				if err != nil {
@@ -170,25 +166,46 @@ func RemoteSignCreateAddress(w http.ResponseWriter, r *http.Request) {
 			}
 			strAdrress = pubKeyAddr //pubKeyAddr.String()
 			//AccountWDCSave
+		} else if "CoinBSC" == jReq.CoinType {
+			strAdr, strPriv, err := accounts.EtherNewAccount()
+			if nil != err {
+				log.Error("get cur BSC' strAdr is :%v\n,err is :%v", strAdr, err)
+				log.Error("get cur BSC' getprivkey is:%v,err is :%v\n", strPriv, err)
+				break
+			}
+			strAdr = strings.ToLower(strAdr)
+
+			err = GenerateAccountBSC(GXormMysql, "", accounts.GAccountPassword, jReq.CoinType, strAdr, strPriv, "getpubKey", "getpubKeyHash")
+
+			//err = GenerateAccountBSC(GXormMysql, jReq.CoinType, strPriv, "getpubKey", strAdr)
+			//err = GbDbMysql.RemoteSignAcccount(jReq.CoinType, strAdr, strPriv, strReqSign)
+			if err != nil {
+				log.Error("%s.GenerateAccount() error=%v", jReq.CoinType, err)
+				sttError = transproto.ErrorInfo{transproto.StatusNewAddressErr, "生成账号地址错误"}
+				break
+			}
+			strAdrress = strAdr
+
 		} else if "CoinDSC" == jReq.CoinType {
 			// sgj 1019add
-
-			getprivkey, getpubKey, pubKeyAddr, err := accounts.AddressGenerateDSC()
-			if err != nil {
-				log.Error("get cur DSC' pubKey is :%v\n,err is :%v", getpubKey, err)
-				log.Error("get cur DSC' getprivkey is:%v,err is :%v\n", getprivkey, err)
-
-			} else {
-				//insert to db:GXormMysql
-				log.Info(" cur exec AddressGenerateDSC() succ!,get pubKey is :%v\n", getpubKey)
-				err = GenerateAccount(GXormMysql, jReq.CoinType, getprivkey, getpubKey, pubKeyAddr)
+			/*
+				getprivkey, getpubKey, pubKeyAddr, err := accounts.EtherNewAccount()	//accounts.AddressGenerateDSC()
 				if err != nil {
-					log.Error("exec DSC GenerateAccount() failue! err is: %v", err)
-					sttError = transproto.ErrorInfo{transproto.StatusNewAddressErr, "生成账号地址错误"}
-					break
+					log.Error("get cur DSC' pubKey is :%v\n,err is :%v", getpubKey, err)
+					log.Error("get cur DSC' getprivkey is:%v,err is :%v\n", getprivkey, err)
+
+				} else {
+					//insert to db:GXormMysql
+					log.Info(" cur exec AddressGenerateDSC() succ!,get pubKey is :%v\n", getpubKey)
+					err = GenerateAccount(GXormMysql, jReq.CoinType, getprivkey, getpubKey, pubKeyAddr)
+					if err != nil {
+						log.Error("exec DSC GenerateAccount() failue! err is: %v", err)
+						sttError = transproto.ErrorInfo{transproto.StatusNewAddressErr, "生成账号地址错误"}
+						break
+					}
 				}
-			}
-			strAdrress = pubKeyAddr //pubKeyAddr.String()
+				strAdrress = pubKeyAddr //pubKeyAddr.String()
+			*/
 		} else {
 			GeneJsonResultFin(w, r, nil, 111096, "error  is cointype")
 		}
@@ -208,8 +225,10 @@ func RemoteSignCreateAddress(w http.ResponseWriter, r *http.Request) {
 	GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)
 }
 
-//sgj 1114add for
-//DepositAddressGatherReq
+// sgj 1114add for
+// DepositAddressGatherReq
+
+/*
 func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 
 	jReq := transproto.DepositAddressGatherReq{}
@@ -222,7 +241,7 @@ func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 	//20200614add,,for WGCFee
 	if jReq.EncryptPemTxt == "EncryptPemTxt2019WDC1114val" || jReq.EncryptPemTxt == "EncryptPemTxt2020WGCFee1114val" {
 		//if jReq.EncryptPemTxt != "EncryptPemTxt2019WDC1114val"
-	}else{
+	} else {
 		GeneJsonResultFin(w, r, nil, 110098, "EncryptPemTxt is nocorrect!")
 		return
 	}
@@ -234,119 +253,73 @@ func RemoteMonitorWalletAddress(w http.ResponseWriter, r *http.Request) {
 	//创建请求列表
 	sttError := transproto.ErrorSuccess
 	var gatherAddrCount int
-	var gatherWGCCount,gatherWDCCount int
+	var gatherWGCCount, gatherWDCCount int
 	var bret bool
-		//20200611 add for WGC
-		if "WDC" == jReq.CoinType || "WGC" == jReq.CoinType{
-			//WithdrawsDepositGatherWDC
-			//1113 测试归集的服务接口调用
-
-			//1204,limit set to 50
-			//0611update,,CoinType,"WDC"
-			gatherAddrCount, bret = wdctranssign.WithdrawsDepositGatherWDC(0, 50, jReq.CoinType)
-
-			if bret != true {
-				log.Error("cur exec WithdrawsDepositGatherWDC() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
-			} else {
-				log.Info(" cur exec WithdrawsDepositGatherWDC() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
-			}
-		}else if "WGCWDCAll" == jReq.CoinType{
-			//sgj 2020066 add,合并归集所有的WGC，WDC的地址；
-			gatherWGCCount,gatherWDCCount,bret = wdctranssign.WithdrawsDepositGatherWGCWDCAddrAll(0, 50, jReq.CoinType)
-
-			if bret != true {
-				log.Error("cur exec WithdrawsDepositGatherWGCWDCAddrAll() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
-			} else {
-				log.Info(" cur exec WithdrawsDepositGatherWGCWDCAddrAll() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
-			}
-
-		} else if "WGCFee" == jReq.CoinType{
-			//sgj 20200614 add
-			gatherAddrCount, bret = wdctranssign.WithdrawsDepositGatherWDCFee(0, 50, jReq.CoinType,jReq.FeeAmount,jReq.FeeThreshold)
-
-			if bret != true {
-				log.Error("cur exec WithdrawsDepositGatherWDCFee() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
-			} else {
-				log.Info(" cur exec WithdrawsDepositGatherWDCFee() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
-			}
-
-		}else{
-
-			GeneJsonResultFin(w, r, nil, 111096, "error  is cointype")
-		}
-		//sgj 0802 add
-		log.Info("exec WithdrawsDepositGatherWDC() success! jReq.CoinType is :%s,gatherAddrCount is: %d", jReq.CoinType, gatherAddrCount)
-
-	makeaddrs := transproto.DepositAddressGatherRes{
-		Count:         int64(gatherAddrCount),
-		CoinType:      jReq.CoinType,
-	}
-	if "WGCWDCAll" == jReq.CoinType{
-		makeaddrsAll := transproto.DepositAddressGatherResAllCount{
-			WGCGatherCount:         int64(gatherWGCCount),
-			WDCGatherCount:         int64(gatherWDCCount),
-			CoinType:      jReq.CoinType,
-		}
-		GeneJsonResultFin(w, r, makeaddrsAll, sttError.Code, sttError.Desc)
-
-	}else{
-		GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)
-
-	}
-}
-
-//sgj 1218add
-//DepositAddressGatherReq
-func RemoteMonitorWalletKTCAddress(w http.ResponseWriter, r *http.Request) {
-
-	jReq := transproto.DepositAddressGatherReq{}
-	strreq, sttErr := HttpExRequestJson(w, r, &jReq)
-	log.Info("fun=RemoteSignCreateAddress() bef--,request=%v", jReq)
-	if true != transproto.Success(sttErr) {
-		GeneJsonResultFin(w, r, nil, sttErr.Code, sttErr.Desc)
-		return
-	}
-	if jReq.EncryptPemTxt != "EncryptPemTxt2019WDC1114val" {
-		GeneJsonResultFin(w, r, nil, 110098, "EncryptPemTxt is nocorrect!")
-		return
-	}
-	if jReq.KeyText != "UCt38sGmp" {
-		GeneJsonResultFin(w, r, nil, 110098, "KeyText is nocorrect!")
-		return
-	}
-	log.Info("fun=RemoteMonitorWalletAddress(),request=%s", strreq)
-	//创建请求列表
-	sttError := transproto.ErrorSuccess
-	var gatherAddrCount int
-	var bret bool
-	if "KTC" == jReq.CoinType {
+	//20200611 add for WGC
+	if "WDC" == jReq.CoinType || "WGC" == jReq.CoinType {
 		//WithdrawsDepositGatherWDC
-		//1217 测试归集的服务接口调用
+		//1113 测试归集的服务接口调用
 
-		//1204,limit set to 50;;;
-		//1230,limit set to 50,,from 4
-		gatherAddrCount, bret = ktctranssign.WithdrawsDepositGatherKTC(0, 50, "KTC")
+		//1204,limit set to 50
+		//0611update,,CoinType,"WDC"
+		gatherAddrCount, bret = wdctranssign.WithdrawsDepositGatherWDC(0, 50, jReq.CoinType)
 
 		if bret != true {
-			log.Error("cur exec WithdrawsDepositGatherKTC() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
+			log.Error("cur exec WithdrawsDepositGatherWDC() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount, "errinfomsgskip")
 		} else {
-			log.Info(" cur exec WithdrawsDepositGatherKTC() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
+			log.Info(" cur exec WithdrawsDepositGatherWDC() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
 		}
-	}else {
+	} else if "WGCWDCAll" == jReq.CoinType {
+		//sgj 2020066 add,合并归集所有的WGC，WDC的地址；
+		gatherWGCCount, gatherWDCCount, bret = wdctranssign.WithdrawsDepositGatherWGCWDCAddrAll(0, 50, jReq.CoinType)
+
+		if bret != true {
+			log.Error("cur exec WithdrawsDepositGatherWGCWDCAddrAll() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount, "errinfomsgskip")
+		} else {
+			log.Info(" cur exec WithdrawsDepositGatherWGCWDCAddrAll() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
+		}
+
+	} else if "WGCFee" == jReq.CoinType {
+		//sgj 20200614 add
+		gatherAddrCount, bret = wdctranssign.WithdrawsDepositGatherWDCFee(0, 50, jReq.CoinType, jReq.FeeAmount, jReq.FeeThreshold)
+
+		if bret != true {
+			log.Error("cur exec WithdrawsDepositGatherWDCFee() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount, "errinfomsgskip")
+		} else {
+			log.Info(" cur exec WithdrawsDepositGatherWDCFee() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
+		}
+
+	} else {
+
 		GeneJsonResultFin(w, r, nil, 111096, "error  is cointype")
 	}
 	//sgj 0802 add
 	log.Info("exec WithdrawsDepositGatherWDC() success! jReq.CoinType is :%s,gatherAddrCount is: %d", jReq.CoinType, gatherAddrCount)
 
 	makeaddrs := transproto.DepositAddressGatherRes{
-		Count:         int64(gatherAddrCount),
-		CoinType:      jReq.CoinType,
+		Count:    int64(gatherAddrCount),
+		CoinType: jReq.CoinType,
 	}
+	if "WGCWDCAll" == jReq.CoinType {
+		makeaddrsAll := transproto.DepositAddressGatherResAllCount{
+			WGCGatherCount: int64(gatherWGCCount),
+			WDCGatherCount: int64(gatherWDCCount),
+			CoinType:       jReq.CoinType,
+		}
+		GeneJsonResultFin(w, r, makeaddrsAll, sttError.Code, sttError.Desc)
 
-	GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)
+	} else {
+		GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)
+
+	}
 }
 
-//sgj 0116add for EETH gather:WithdrawsDepositGatherEETH
+*/
+
+//sgj 1218add
+//DepositAddressGatherReq
+
+// sgj 0116add for EETH gather:WithdrawsDepositGatherEETH
 func RemoteMonitorWalletEETHAddress(w http.ResponseWriter, r *http.Request) {
 
 	jReq := transproto.DepositAddressGatherReq{}
@@ -369,112 +342,33 @@ func RemoteMonitorWalletEETHAddress(w http.ResponseWriter, r *http.Request) {
 	sttError := transproto.ErrorSuccess
 	var gatherAddrCount int
 	var bret bool
-	if "BTC" == jReq.CoinType || "USDT" == jReq.CoinType || "ETH" == jReq.CoinType{
+	if "BTC" == jReq.CoinType || "USDT" == jReq.CoinType || "ETH" == jReq.CoinType {
 		//WithdrawsDepositGatherWDC
 		//1217 测试归集的服务接口调用
 
 		//1204,limit set to 50;;;
 		//1230,limit set to 50,,from 4
-	//	gatherAddrCount, bret = ktctranssign.WithdrawsDepositGatherEETH(0, 50, jReq.CoinType)
-		gatherAddrCount, bret = WithdrawsDepositGatherEETH(0, 50, jReq.CoinType)
+		//	gatherAddrCount, bret = ktctranssign.WithdrawsDepositGatherEETH(0, 50, jReq.CoinType)
+		//2023.0323
+		//gatherAddrCount, bret = WithdrawsDepositGatherEETH(0, 50, jReq.CoinType)
 
 		if bret != true {
-			log.Error("cur exec WithdrawsDepositGatherEETH() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount,"errinfomsgskip")
+			log.Error("cur exec WithdrawsDepositGatherEETH() err! get gatherAddrCount is:%d\n,err is :%v", gatherAddrCount, "errinfomsgskip")
 		} else {
 			log.Info(" cur exec WithdrawsDepositGatherEETH() succ!,get gatherAddrCount is :%d\n", gatherAddrCount)
 		}
-	}else {
+	} else {
 		GeneJsonResultFin(w, r, nil, 111096, "error  is cointype")
 	}
 	//sgj 0802 add
 	log.Info("exec WithdrawsDepositGatherEETH() success! jReq.CoinType is :%s,gatherAddrCount is: %d", jReq.CoinType, gatherAddrCount)
 
 	makeaddrs := transproto.DepositAddressGatherRes{
-		Count:         int64(gatherAddrCount),
-		CoinType:      jReq.CoinType,
+		Count:    int64(gatherAddrCount),
+		CoinType: jReq.CoinType,
 	}
 
 	GeneJsonResultFin(w, r, makeaddrs, sttError.Code, sttError.Desc)
 }
 
 //const HActionSign     = "GGEX-ActionSign"
-
-//sgj 1025doing,send request query to settlecenter
-func WithdrawsTransTotal(offset, limit uint, cointype string) (uint, []interface{}) {
-	var reqInfo transproto.WithdrawsQueryReq
-
-	ht := CHttpClientEx{}
-	//sgj add
-	ht.Init()
-	ht.HeaderSet("Content-Type", "application/json;charset=utf-8")
-
-	//reqInfo.MaxVol = 0
-	reqInfo.Limit = int(limit)
-	reqInfo.Status = transproto.SETTLE_STATUS_PASSED
-	reqInfo.CoinCode = cointype
-	reqInfo.Nonce = time.Now().Unix()
-	reqInfo.Offset = int(offset)
-	//sgj 1028,,查询settle 的提现类型记录状态为：SETTLE_STATUS_PASSED
-	//获取交易所需要的详细信息
-
-	UrlVerify := config.GbConf.SettleApiQuery
-	//UrlVerify := config.GbConf.SettleApiReq.SettlApiQuery
-	var signData string
-	for {
-		//fix to this,每次变量初始化
-		resQuerySign := transproto.Response{}
-		transInfo := transproto.WithdrawsQueryResp{}
-		resQuerySign.Data = &transInfo
-
-		log.Info("withdrawsQuery.UrlVerify is:%s,reqInfo is:%v", UrlVerify, reqInfo)
-
-		reqBody, err := json.Marshal(&reqInfo)
-		if nil != err {
-			log.Error("when withdrawsQuery,Marshal to json error:%s", err.Error())
-			return 0, nil
-		}
-		if signData, err = auth.KSign(reqBody, GSettleAccessKey); err != nil {
-			log.Error("In withdrawsQuery(),auth.KSign failed,signData is :%v,err is:%v", signData, err)
-			return 0, nil
-		}
-		//step 2
-		log.Info("withdrawsQuery,auth.KSign succ!,signData is :%v", signData)
-
-		//req.Header.Set("abit-actionsign", signData)
-
-		//
-		//ht.HeaderSet(transproto.HActionSign, signData)
-		//sgj 1112 adding,STDusing!!:
-		ht.HeaderSet(transproto.HActionAbitSign, signData)
-
-		strRes, statusCode, errorCode, err := ht.RequestJsonResponseJson(UrlVerify, 9000, &reqInfo, &resQuerySign)
-		if nil != err {
-			log.Error("ht.RequestResponseJsonJson  status=%d,error=%d.%v url=%s ", statusCode, errorCode, err, UrlVerify)
-			time.Sleep(time.Second * 30)
-			continue
-		}
-		log.Info("transserver.transInfo res=%s", strRes)
-		log.Info("json.Unmarshal succ!,cur get resQuerySign :%v,get field code is :%s", resQuerySign, resQuerySign.Code)
-		for ino, curSettItem := range transInfo.Withdraws {
-			// 2 审核通过(运营审核通过)
-			log.Info("get SettlApiQuery queue info, cur ino is:%d,SettItem record Status is:%v,curSettItem is :%v", ino, curSettItem.Status, curSettItem)
-			curStatus := curSettItem.Status
-			if curStatus != transproto.SETTLE_STATUS_PASSED {
-				log.Error("get SettlApiQuery queue info, curSettItem record Status is:%s,is skiped!,curSettItem is :%v", curStatus, curSettItem)
-				continue
-			}
-			//note,from 是大账户地址："1HFCUeNHcL6Drf4TPwBLG6RgYVe9o41BVj",
-			if curSettItem.CoinCode == "WDC" {
-				wdctranssign.GWDCTransHandle.WDCTransProc(curSettItem, config.GbConf.WDCTransferOutAddress, "exaaccountName")
-			}
-
-		}
-
-		log.Info("transInfo len is:%d,finished!,to wait 30s", len(transInfo.Withdraws))
-
-		time.Sleep(time.Second * 30)
-
-	}
-	return 1, nil
-
-}

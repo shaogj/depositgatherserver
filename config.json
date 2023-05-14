@@ -1,10 +1,10 @@
 {
   "MySqlConfig": {
-    "host": "127.0.0.1",
-    "user": "root",
-    "password": "123456",
+    "host": "192.168.1.99",
+    "user": "8lab",
+    "password": "8lab",
     "port": 3306,
-    "dbname": "ggexaddressall"
+    "dbname": "bsc_accounts2023"
   },
   "MySqlConfigKTC": {
     "host": "18.176.110.109",
